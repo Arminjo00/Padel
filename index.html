@@ -1,0 +1,2613 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Padel Club Connect</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0E1626">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Padel Club">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
+
+:root{
+  --ink:#0E1626;
+  --ink-2:#141F35;
+  --ink-3:#1B2A46;
+  --line: rgba(196,241,53,0.14);
+  --line-soft: rgba(255,255,255,0.08);
+  --ball:#C9F53B;
+  --ball-dim:#8FB82A;
+  --court:#3E7BFA;
+  --court-dim:#274C99;
+  --paper:#F3F6EF;
+  --muted:#8C9AB5;
+  --muted-2:#5C6A85;
+  --danger:#FF6B5B;
+  --ok:#4FD98A;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+html,body{
+  background: #060A12;
+  font-family:'Manrope', sans-serif;
+  color: var(--paper);
+  -webkit-font-smoothing:antialiased;
+}
+body{
+  min-height:100vh;
+  display:flex;
+  align-items:flex-start;
+  justify-content:center;
+  padding: 40px 16px;
+}
+
+.stage{
+  width:100%;
+  max-width:1100px;
+  display:flex;
+  gap:48px;
+  align-items:flex-start;
+  justify-content:center;
+  flex-wrap:wrap;
+}
+
+.intro{
+  max-width:340px;
+  padding-top:36px;
+}
+.intro .eyebrow{
+  font-family:'JetBrains Mono', monospace;
+  font-size:12px;
+  letter-spacing:0.14em;
+  text-transform:uppercase;
+  color: var(--ball);
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.intro .eyebrow::before{
+  content:"";
+  width:20px; height:2px;
+  background:var(--ball);
+  display:inline-block;
+}
+.intro h1{
+  font-family:'Anton', sans-serif;
+  font-weight:400;
+  font-size:44px;
+  line-height:0.98;
+  letter-spacing:0.005em;
+  margin-top:14px;
+  text-transform:uppercase;
+}
+.intro h1 span{ color: var(--ball); }
+.intro p{
+  color: var(--muted);
+  font-size:15px;
+  line-height:1.6;
+  margin-top:16px;
+}
+.intro .tag-row{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-top:24px;
+}
+.admin-link{
+  margin-top:20px;
+  font-family:'JetBrains Mono', monospace;
+  font-size:12px;
+  color: var(--amber, #FFC85C);
+  border:1px solid rgba(255,200,92,0.3);
+  background: rgba(255,200,92,0.06);
+  border-radius:20px;
+  padding:10px 16px;
+  display:inline-block;
+  cursor:pointer;
+}
+.admin-link:hover{ border-color: rgba(255,200,92,0.6); }
+.chip{
+  font-family:'JetBrains Mono', monospace;
+  font-size:11px;
+  padding:6px 10px;
+  border:1px solid var(--line-soft);
+  border-radius:20px;
+  color:var(--muted);
+}
+
+/* Phone frame */
+.phone{
+  width:380px;
+  height:800px;
+  background: linear-gradient(180deg, var(--ink) 0%, #0A1120 100%);
+  border-radius:44px;
+  border: 10px solid #05070C;
+  box-shadow: 0 40px 80px -20px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.03);
+  position:relative;
+  overflow:hidden;
+  flex-shrink:0;
+}
+.phone::before{
+  content:"";
+  position:absolute;
+  top:0; left:50%;
+  transform:translateX(-50%);
+  width:120px; height:26px;
+  background:#05070C;
+  border-radius:0 0 18px 18px;
+  z-index:50;
+}
+.screen{
+  position:absolute;
+  inset:0;
+  display:flex;
+  flex-direction:column;
+  padding: 50px 22px 0;
+  overflow-y:auto;
+}
+.screen::-webkit-scrollbar{ display:none; }
+
+.view{
+  display:none;
+  flex-direction:column;
+  height:100%;
+  animation: fade .35s ease;
+  position:relative;
+}
+.view.active{ display:flex; }
+@keyframes fade{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
+
+/* Top status */
+.statusbar{
+  display:flex;
+  justify-content:space-between;
+  font-family:'JetBrains Mono', monospace;
+  font-size:11px;
+  color: var(--muted-2);
+  margin-bottom:14px;
+}
+
+/* Progress dots for onboarding */
+.dots{
+  display:flex;
+  gap:6px;
+  margin-bottom:22px;
+}
+.dot{
+  height:4px;
+  flex:1;
+  background: var(--line-soft);
+  border-radius:2px;
+  overflow:hidden;
+}
+.dot i{
+  display:block;
+  height:100%;
+  width:0%;
+  background: var(--ball);
+  transition: width .4s ease;
+}
+.dot.done i{ width:100%; }
+.dot.current i{ width:100%; }
+
+.q-label{
+  font-family:'JetBrains Mono', monospace;
+  font-size:12px;
+  color:var(--ball);
+  text-transform:uppercase;
+  letter-spacing:0.1em;
+}
+.q-title{
+  font-family:'Anton', sans-serif;
+  font-weight:400;
+  font-size:26px;
+  text-transform:uppercase;
+  line-height:1.08;
+  margin: 10px 0 22px;
+}
+
+.option{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  background: var(--ink-2);
+  border:1px solid var(--line-soft);
+  border-radius:16px;
+  padding:16px;
+  margin-bottom:12px;
+  cursor:pointer;
+  transition: border-color .15s ease, transform .1s ease, background .15s ease;
+}
+.option:hover{ border-color: var(--ball-dim); transform:translateY(-1px); }
+.option:active{ transform:scale(0.98); }
+.option.selected{
+  border-color: var(--ball);
+  background: rgba(201,245,59,0.08);
+}
+.option .icon{
+  width:42px; height:42px;
+  border-radius:12px;
+  background: var(--ink-3);
+  display:flex; align-items:center; justify-content:center;
+  font-size:20px;
+  flex-shrink:0;
+}
+.option .txt strong{
+  display:block;
+  font-size:14.5px;
+  font-weight:700;
+}
+.option .txt span{
+  display:block;
+  font-size:12.5px;
+  color:var(--muted);
+  margin-top:2px;
+}
+
+.spacer{ flex:1; }
+
+.btn-primary{
+  width:100%;
+  padding:16px;
+  border-radius:14px;
+  border:none;
+  background: var(--ball);
+  color:#12210A;
+  font-family:'Manrope', sans-serif;
+  font-weight:800;
+  font-size:14.5px;
+  letter-spacing:0.01em;
+  cursor:pointer;
+  margin-bottom:14px;
+  transition: transform .1s ease, opacity .15s ease;
+}
+.btn-primary:disabled{ opacity:0.3; cursor:not-allowed; }
+.btn-primary:not(:disabled):active{ transform:scale(0.98); }
+
+.btn-ghost{
+  width:100%;
+  padding:14px;
+  border-radius:14px;
+  border:1px solid var(--line-soft);
+  background:transparent;
+  color:var(--muted);
+  font-family:'Manrope', sans-serif;
+  font-weight:700;
+  font-size:13.5px;
+  cursor:pointer;
+  margin-bottom:14px;
+}
+
+/* Result screen */
+.result-badge{
+  align-self:center;
+  width:150px; height:150px;
+  border-radius:50%;
+  border: 3px solid var(--ball);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  margin: 20px 0 26px;
+  position:relative;
+}
+.result-badge .lvl-num{
+  font-family:'Anton', sans-serif;
+  font-size:44px;
+  color: var(--ball);
+  line-height:1;
+}
+.result-badge .lvl-name{
+  font-family:'JetBrains Mono', monospace;
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:0.08em;
+  color:var(--muted);
+  margin-top:4px;
+}
+.result-sub{
+  text-align:center;
+  color:var(--muted);
+  font-size:13.5px;
+  line-height:1.6;
+  padding: 0 8px;
+}
+
+/* Home / dashboard */
+.home-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:20px;
+}
+.home-header .greet span{
+  display:block;
+  font-size:12px;
+  color:var(--muted);
+  font-family:'JetBrains Mono', monospace;
+  text-transform:uppercase;
+  letter-spacing:0.08em;
+}
+.home-header .greet strong{
+  font-family:'Anton', sans-serif;
+  font-size:22px;
+  text-transform:uppercase;
+  font-weight:400;
+}
+.header-right{ display:flex; align-items:center; gap:10px; }
+.bell-btn{
+  width:38px; height:38px;
+  border-radius:50%;
+  background:var(--ink-2);
+  border:1px solid var(--line-soft);
+  display:flex; align-items:center; justify-content:center;
+  font-size:16px;
+  cursor:pointer;
+  position:relative;
+  flex-shrink:0;
+}
+.bell-btn .dotbadge{
+  position:absolute;
+  top:6px; right:7px;
+  width:8px; height:8px;
+  border-radius:50%;
+  background: var(--danger);
+  border:2px solid var(--ink);
+}
+.avatar-lvl{
+  width:46px; height:46px;
+  border-radius:50%;
+  background:var(--ink-2);
+  border:2px solid var(--ball);
+  display:flex; align-items:center; justify-content:center;
+  font-family:'JetBrains Mono', monospace;
+  font-weight:700;
+  font-size:13px;
+  color:var(--ball);
+  cursor:pointer;
+  flex-shrink:0;
+}
+
+.notif-panel{
+  position:absolute;
+  top:70px;
+  right:0;
+  width:100%;
+  background: var(--ink-2);
+  border:1px solid var(--line-soft);
+  border-radius:16px;
+  padding:14px;
+  z-index:40;
+  display:none;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+}
+.notif-panel.open{ display:block; }
+.notif-item{
+  display:flex;
+  gap:10px;
+  padding:10px 4px;
+  border-bottom:1px solid var(--line-soft);
+}
+.notif-item:last-child{ border-bottom:none; }
+.notif-item .ic{ font-size:18px; flex-shrink:0; }
+.notif-item .txt strong{ display:block; font-size:12.5px; }
+.notif-item .txt span{ display:block; font-size:11px; color:var(--muted); margin-top:2px; }
+.notif-item.levelup{ background: rgba(201,245,59,0.06); border-radius:10px; }
+
+.stat-row{
+  display:flex;
+  gap:10px;
+  margin-bottom:22px;
+}
+.stat-card{
+  flex:1;
+  background: var(--ink-2);
+  border:1px solid var(--line-soft);
+  border-radius:14px;
+  padding:12px;
+}
+.stat-card .n{
+  font-family:'JetBrains Mono', monospace;
+  font-weight:700;
+  font-size:20px;
+  color: var(--ball);
+}
+.stat-card .l{
+  font-size:11px;
+  color:var(--muted);
+  margin-top:2px;
+}
+
+.section-label{
+  font-family:'JetBrains Mono', monospace;
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:0.1em;
+  color:var(--muted);
+  margin: 4px 0 12px;
+  display:flex;
+  justify-content:space-between;
+}
+
+.action-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-bottom:24px;
+}
+.action-card{
+  background: var(--ink-2);
+  border:1px solid var(--line-soft);
+  border-radius:16px;
+  padding:16px 14px;
+  cursor:pointer;
+  transition: border-color .15s ease;
+}
+.action-card:hover{ border-color:var(--ball-dim); }
+.action-card .em{ font-size:22px; }
+.action-card strong{
+  display:block;
+  font-size:13.5px;
+  margin-top:10px;
+}
+.action-card span{
+  display:block;
+  font-size:11.5px;
+  color:var(--muted);
+  margin-top:2px;
+}
+
+/* Match cards */
+.filter-row{
+  display:flex;
+  gap:8px;
+  margin-bottom:16px;
+  overflow-x:auto;
+}
+.filter-pill{
+  font-family:'JetBrains Mono', monospace;
+  font-size:11px;
+  padding:8px 12px;
+  border-radius:20px;
+  border:1px solid var(--line-soft);
+  color:var(--muted);
+  white-space:nowrap;
+  cursor:pointer;
+  flex-shrink:0;
+}
+.filter-pill.active{
+  border-color:var(--ball);
+  color:var(--ball);
+  background:rgba(201,245,59,0.08);
+}
+
+.match-card{
+  background: var(--ink-2);
+  border:1px solid var(--line-soft);
+  border-radius:16px;
+  padding:14px;
+  margin-bottom:12px;
+  display:flex;
+  gap:12px;
+  align-items:center;
+}
+.match-avatar{
+  width:48px; height:48px;
+  border-radius:50%;
+  background: linear-gradient(135deg, var(--court), var(--court-dim));
+  display:flex; align-items:center; justify-content:center;
+  font-weight:700;
+  font-size:15px;
+  flex-shrink:0;
+}
+.match-info{ flex:1; min-width:0; }
+.match-info strong{ font-size:14px; display:block; }
+.match-info .meta{
+  font-size:11.5px;
+  color:var(--muted);
+  margin-top:2px;
+  display:flex;
+  gap:6px;
+  flex-wrap:wrap;
+}
+.tag-mini{
+  background: var(--ink-3);
+  padding:2px 7px;
+  border-radius:8px;
+  font-size:10.5px;
+  color:var(--muted);
+}
+.match-cta{
+  width:34px;height:34px;
+  border-radius:50%;
+  background: var(--ball);
+  color:#12210A;
+  border:none;
+  font-size:16px;
+  font-weight:800;
+  flex-shrink:0;
+  cursor:pointer;
+}
+
+/* Ladder */
+.ladder-row{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:12px 4px;
+  border-bottom:1px solid var(--line-soft);
+}
+.ladder-rank{
+  font-family:'Anton', sans-serif;
+  font-size:18px;
+  width:26px;
+  color:var(--muted);
+  text-align:center;
+}
+.ladder-row.me .ladder-rank{ color:var(--ball); }
+.ladder-row.me{
+  background:rgba(201,245,59,0.06);
+  border-radius:10px;
+  border-bottom:1px solid transparent;
+}
+.ladder-av{
+  width:36px;height:36px;
+  border-radius:50%;
+  background:var(--ink-3);
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;
+  font-weight:700;
+}
+.ladder-name{ flex:1; font-size:13.5px; font-weight:600; }
+.ladder-name span{ display:block; font-size:11px; color:var(--muted); font-weight:400; }
+.ladder-pts{
+  font-family:'JetBrains Mono', monospace;
+  font-weight:700;
+  font-size:13px;
+  color:var(--ball);
+}
+.ladder-trend{ font-size:11px; width:30px; text-align:right; }
+.trend-up{ color:var(--ok); }
+.trend-down{ color:var(--danger); }
+
+/* Payment */
+.booking-card{
+  background: var(--ink-2);
+  border:1px solid var(--line-soft);
+  border-radius:18px;
+  padding:18px;
+  margin-bottom:18px;
+}
+.booking-card .top{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  margin-bottom:14px;
+}
+.booking-card .court-name{
+  font-family:'Anton', sans-serif;
+  font-size:20px;
+  text-transform:uppercase;
+}
+.booking-card .when{ font-size:12px; color:var(--muted); margin-top:2px; }
+.price-tag{
+  font-family:'JetBrains Mono', monospace;
+  font-weight:700;
+  font-size:18px;
+  color:var(--ball);
+}
+.split-list{ display:flex; flex-direction:column; gap:10px; }
+.split-row{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  background: var(--ink-3);
+  border-radius:12px;
+  padding:10px 12px;
+}
+.split-row .sav{
+  width:32px;height:32px;
+  border-radius:50%;
+  background: var(--ink-2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;
+  font-weight:700;
+}
+.split-row .sname{ flex:1; font-size:13px; font-weight:600; }
+.split-row .samt{ font-family:'JetBrains Mono', monospace; font-size:12.5px; color:var(--muted); }
+.status-dot{
+  width:10px;height:10px;
+  border-radius:50%;
+  flex-shrink:0;
+}
+.status-dot.paid{ background: var(--ok); }
+.status-dot.pending{ background: var(--muted-2); }
+
+.progress-track{
+  height:8px;
+  background: var(--ink-3);
+  border-radius:6px;
+  overflow:hidden;
+  margin:16px 0 6px;
+}
+.progress-fill{
+  height:100%;
+  background: var(--ball);
+  border-radius:6px;
+  transition: width .5s ease;
+}
+.progress-label{
+  font-size:11.5px;
+  color:var(--muted);
+  text-align:right;
+}
+
+/* Booking calendar */
+.date-row{
+  display:flex;
+  gap:8px;
+  margin-bottom:14px;
+  overflow-x:auto;
+}
+.date-pill{
+  font-family:'JetBrains Mono', monospace;
+  flex-shrink:0;
+  min-width:52px;
+  text-align:center;
+  padding:10px 6px;
+  border-radius:14px;
+  border:1px solid var(--line-soft);
+  cursor:pointer;
+  color:var(--muted);
+}
+.date-pill .d{ font-size:10px; text-transform:uppercase; }
+.date-pill .n{ font-size:15px; font-weight:700; margin-top:2px; }
+.date-pill.active{
+  border-color:var(--ball);
+  background: rgba(201,245,59,0.08);
+  color:var(--ball);
+}
+
+.type-row{
+  display:flex;
+  gap:8px;
+  margin-bottom:16px;
+}
+.type-pill{
+  font-size:12px;
+  font-weight:700;
+  padding:8px 14px;
+  border-radius:20px;
+  border:1px solid var(--line-soft);
+  color:var(--muted);
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.type-pill.active{
+  border-color:var(--court);
+  background: rgba(62,123,250,0.12);
+  color:#9CC0FF;
+}
+
+.slot-card{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  background: var(--ink-2);
+  border:1px solid var(--line-soft);
+  border-radius:16px;
+  padding:14px;
+  margin-bottom:10px;
+}
+.slot-card.taken{ opacity:0.4; }
+.slot-time{
+  font-family:'JetBrains Mono', monospace;
+  font-weight:700;
+  font-size:15px;
+  width:52px;
+  flex-shrink:0;
+}
+.slot-info{ flex:1; min-width:0; }
+.slot-info strong{ font-size:13.5px; display:block; }
+.slot-info .meta{ font-size:11px; color:var(--muted); margin-top:2px; display:flex; gap:6px; align-items:center; }
+.court-type-badge{
+  font-size:10px;
+  padding:2px 7px;
+  border-radius:8px;
+  font-weight:700;
+}
+.court-type-badge.offen{ background: rgba(201,245,59,0.12); color:var(--ball); }
+.court-type-badge.ueberdacht{ background: rgba(62,123,250,0.15); color:#9CC0FF; }
+.slot-price{
+  font-family:'JetBrains Mono', monospace;
+  font-size:13px;
+  color:var(--muted);
+  margin-right:4px;
+}
+.slot-btn{
+  padding:9px 14px;
+  border-radius:12px;
+  border:none;
+  background:var(--ball);
+  color:#12210A;
+  font-weight:800;
+  font-size:12px;
+  cursor:pointer;
+  flex-shrink:0;
+}
+.slot-btn:disabled{
+  background: var(--ink-3);
+  color:var(--muted);
+  cursor:not-allowed;
+}
+.empty-state{
+  text-align:center;
+  color:var(--muted);
+  font-size:13px;
+  padding:30px 10px;
+}
+
+/* Profile */
+.profile-head{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  margin-bottom:20px;
+}
+.profile-avatar{
+  width:60px; height:60px;
+  border-radius:50%;
+  background: linear-gradient(135deg, var(--court), var(--court-dim));
+  display:flex; align-items:center; justify-content:center;
+  font-weight:700;
+  font-size:19px;
+}
+.profile-head strong{ font-size:17px; display:block; }
+.profile-head span{ font-size:12px; color:var(--muted); }
+
+.avatar-upload-wrap{
+  position:relative;
+  width:60px; height:60px;
+  flex-shrink:0;
+}
+.avatar-upload-wrap .profile-avatar{
+  width:100%; height:100%;
+  background-size:cover;
+  background-position:center;
+  cursor:pointer;
+}
+.avatar-edit-btn{
+  position:absolute;
+  bottom:-2px; right:-2px;
+  width:22px; height:22px;
+  border-radius:50%;
+  background:var(--ball);
+  display:flex; align-items:center; justify-content:center;
+  font-size:11px;
+  cursor:pointer;
+  border:2px solid var(--ink);
+  color:#12210A;
+}
+
+.edit-field{ margin-bottom:12px; }
+.edit-label{
+  font-size:11px;
+  color:var(--muted);
+  margin-bottom:6px;
+  display:block;
+  font-family:'JetBrains Mono', monospace;
+  text-transform:uppercase;
+  letter-spacing:0.06em;
+}
+.edit-input{
+  width:100%;
+  background: var(--ink-2);
+  border:1px solid var(--line-soft);
+  border-radius:12px;
+  padding:11px 13px;
+  color:var(--paper);
+  font-family:'Manrope', sans-serif;
+  font-size:13px;
+}
+.edit-input::placeholder{ color:var(--muted-2); }
+.edit-input:focus{ outline:none; border-color:var(--ball-dim); }
+.save-confirm{
+  display:none;
+  align-items:center;
+  gap:8px;
+  background: rgba(79,217,138,0.1);
+  border:1px solid rgba(79,217,138,0.3);
+  border-radius:12px;
+  padding:10px 13px;
+  font-size:12px;
+  color: var(--ok);
+  margin-bottom:12px;
+}
+.save-confirm.show{ display:flex; }
+
+.level-chip-row{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  margin-bottom:16px;
+}
+.level-chip{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:12px 14px;
+  border-radius:14px;
+  border:1px solid var(--line-soft);
+  background: var(--ink-2);
+  cursor:pointer;
+}
+.level-chip .num{
+  font-family:'Anton', sans-serif;
+  font-size:16px;
+  width:26px;
+  color:var(--muted);
+}
+.level-chip strong{ font-size:13px; flex:1; }
+.level-chip.active{
+  border-color:var(--ball);
+  background: rgba(201,245,59,0.08);
+}
+.level-chip.active .num{ color:var(--ball); }
+
+.info-note{
+  font-size:12px;
+  color:var(--muted);
+  line-height:1.6;
+  background: var(--ink-2);
+  border:1px solid var(--line-soft);
+  border-radius:14px;
+  padding:14px;
+  margin-bottom:18px;
+}
+
+.activity-item{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:10px 4px;
+  border-bottom:1px solid var(--line-soft);
+}
+.activity-item .ic{ font-size:16px; width:22px; text-align:center; flex-shrink:0; }
+.activity-item .txt{ flex:1; font-size:12.5px; }
+.activity-item .txt span{ display:block; color:var(--muted); font-size:11px; margin-top:2px; }
+.activity-item.win .txt strong{ color: var(--ok); }
+.activity-item.levelup{ background: rgba(201,245,59,0.06); border-radius:10px; border-bottom:1px solid transparent; }
+
+/* Bottom nav */
+.tabbar{
+  display:flex;
+  border-top:1px solid var(--line-soft);
+  background: rgba(14,22,38,0.9);
+  backdrop-filter: blur(6px);
+  padding: 10px 8px 18px;
+  margin: 0 -22px;
+  position:sticky;
+  bottom:0;
+}
+.tab{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:4px;
+  cursor:pointer;
+  color: var(--muted-2);
+  padding:4px 0;
+}
+.tab .ic{ font-size:18px; }
+.tab .lb{ font-size:9.5px; font-family:'JetBrains Mono', monospace; text-transform:uppercase; letter-spacing:0.04em; }
+.tab.active{ color: var(--ball); }
+
+h2.screen-title{
+  font-family:'Anton', sans-serif;
+  font-size:24px;
+  text-transform:uppercase;
+  font-weight:400;
+  margin-bottom:16px;
+}
+.back-row{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:6px;
+  cursor:pointer;
+  color:var(--muted);
+  font-size:12px;
+  font-family:'JetBrains Mono', monospace;
+}
+
+.match-card[data-player], .ladder-row[data-player]{ cursor:pointer; }
+.match-card[data-player]:hover, .ladder-row[data-player]:hover{ border-color: var(--ball-dim); }
+
+/* Player profile (other players) */
+.pp-head{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  margin-bottom:18px;
+}
+.pp-avatar{
+  width:64px; height:64px;
+  border-radius:50%;
+  background: linear-gradient(135deg, var(--court), var(--court-dim));
+  display:flex; align-items:center; justify-content:center;
+  font-weight:700;
+  font-size:20px;
+  flex-shrink:0;
+}
+.pp-head .name{ font-family:'Anton', sans-serif; font-size:20px; text-transform:uppercase; line-height:1; }
+.pp-head .sub{ font-size:12px; color:var(--muted); margin-top:6px; }
+
+.pp-badges{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-bottom:18px;
+}
+.pp-badge{
+  font-size:11.5px;
+  font-weight:700;
+  padding:6px 11px;
+  border-radius:20px;
+  background: var(--ink-2);
+  border:1px solid var(--line-soft);
+  color:var(--muted);
+}
+.pp-badge.accent{ border-color:var(--ball); color:var(--ball); background:rgba(201,245,59,0.08); }
+
+.pp-stat-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  gap:8px;
+  margin-bottom:18px;
+}
+.pp-stat{
+  background: var(--ink-2);
+  border:1px solid var(--line-soft);
+  border-radius:14px;
+  padding:12px 8px;
+  text-align:center;
+}
+.pp-stat .n{ font-family:'JetBrains Mono', monospace; font-weight:700; font-size:17px; color:var(--ball); }
+.pp-stat .l{ font-size:10px; color:var(--muted); margin-top:4px; }
+
+.pp-detail-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:11px 2px;
+  border-bottom:1px solid var(--line-soft);
+  font-size:13px;
+}
+.pp-detail-row .k{ color:var(--muted); }
+.pp-detail-row .v{ font-weight:600; }
+
+.pp-bio{
+  font-size:12.5px;
+  color:var(--muted);
+  line-height:1.6;
+  background: var(--ink-2);
+  border:1px solid var(--line-soft);
+  border-radius:14px;
+  padding:14px;
+  margin:16px 0 18px;
+}
+
+/* Feedback */
+.fb-cat-row{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-bottom:14px;
+}
+.fb-cat{
+  font-size:12px;
+  font-weight:700;
+  padding:9px 13px;
+  border-radius:20px;
+  border:1px solid var(--line-soft);
+  color:var(--muted);
+  cursor:pointer;
+}
+.fb-cat.active{
+  border-color:var(--ball);
+  color:var(--ball);
+  background: rgba(201,245,59,0.08);
+}
+.fb-textarea{
+  width:100%;
+  min-height:110px;
+  background: var(--ink-2);
+  border:1px solid var(--line-soft);
+  border-radius:14px;
+  padding:14px;
+  color: var(--paper);
+  font-family:'Manrope', sans-serif;
+  font-size:13.5px;
+  line-height:1.5;
+  resize:none;
+  margin-bottom:14px;
+}
+.fb-textarea::placeholder{ color: var(--muted-2); }
+.fb-textarea:focus{ outline:none; border-color:var(--ball-dim); }
+.fb-confirm{
+  display:none;
+  align-items:center;
+  gap:10px;
+  background: rgba(79,217,138,0.1);
+  border:1px solid rgba(79,217,138,0.3);
+  border-radius:12px;
+  padding:12px 14px;
+  font-size:12.5px;
+  color: var(--ok);
+  margin-bottom:14px;
+}
+.fb-confirm.show{ display:flex; }
+.fb-list-item{
+  background: var(--ink-2);
+  border:1px solid var(--line-soft);
+  border-radius:14px;
+  padding:12px 14px;
+  margin-bottom:10px;
+}
+.fb-list-item .fb-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:6px;
+}
+.fb-list-item .fb-cat-tag{
+  font-size:10.5px;
+  font-weight:700;
+  color:var(--ball);
+  text-transform:uppercase;
+  letter-spacing:0.04em;
+}
+.fb-list-item .fb-time{ font-size:10.5px; color:var(--muted-2); }
+.fb-list-item .fb-text{ font-size:12.5px; color:var(--muted); line-height:1.5; }
+
+/* Skill radar */
+.radar-wrap{
+  display:flex;
+  justify-content:center;
+  background: var(--ink-2);
+  border:1px solid var(--line-soft);
+  border-radius:16px;
+  padding:14px 6px;
+  margin-bottom:18px;
+}
+
+/* Team-fit */
+.team-fit-box{
+  background: var(--ink-2);
+  border:1px solid var(--line-soft);
+  border-radius:14px;
+  padding:14px;
+  margin-bottom:16px;
+}
+.team-fit-box .tf-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:baseline;
+  margin-bottom:8px;
+}
+.team-fit-box .tf-score{
+  font-family:'JetBrains Mono', monospace;
+  font-weight:700;
+  font-size:20px;
+  color:var(--ball);
+}
+.team-fit-box .tf-label{
+  font-family:'JetBrains Mono', monospace;
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:0.08em;
+  color:var(--muted);
+}
+.tf-bar-track{
+  height:8px;
+  background: var(--ink-3);
+  border-radius:6px;
+  overflow:hidden;
+  margin-bottom:8px;
+}
+.tf-bar-fill{
+  height:100%;
+  background: linear-gradient(90deg, var(--court), var(--ball));
+  border-radius:6px;
+}
+.team-fit-box .tf-desc{ font-size:11.5px; color:var(--muted); line-height:1.5; }
+.tf-badge{
+  background: rgba(62,123,250,0.14) !important;
+  color:#9CC0FF !important;
+}
+
+/* Weather */
+.weather-banner{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  background: rgba(62,123,250,0.1);
+  border:1px solid rgba(62,123,250,0.25);
+  border-radius:12px;
+  padding:11px 13px;
+  margin-bottom:14px;
+  font-size:12px;
+  color:#9CC0FF;
+  line-height:1.5;
+  display:none;
+}
+.weather-banner.show{ display:flex; }
+.date-pill .w{ font-size:12px; margin-top:3px; }
+.date-pill .wt{ font-size:9px; color:var(--muted-2); margin-top:1px; }
+
+/* Flash slot */
+.flash-card{
+  background: linear-gradient(135deg, rgba(201,245,59,0.14), rgba(62,123,250,0.08));
+  border:1px solid var(--ball-dim);
+  border-radius:16px;
+  padding:14px;
+  margin-bottom:16px;
+}
+.flash-card .fh-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:6px;
+}
+.flash-card .fh-title{
+  font-family:'JetBrains Mono', monospace;
+  font-size:11.5px;
+  font-weight:700;
+  color:var(--ball);
+  text-transform:uppercase;
+  letter-spacing:0.06em;
+}
+.flash-card .fh-timer{
+  font-family:'JetBrains Mono', monospace;
+  font-size:12px;
+  font-weight:700;
+  color:#FFDD55;
+}
+.flash-card .fh-body{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+}
+.flash-card .fh-info strong{ font-size:14px; display:block; }
+.flash-card .fh-info span{ font-size:11.5px; color:var(--muted); }
+.flash-card .fh-price{ text-align:right; }
+.flash-card .fh-price .old{ font-size:11px; color:var(--muted-2); text-decoration:line-through; }
+.flash-card .fh-price .new{ font-family:'JetBrains Mono', monospace; font-weight:700; font-size:16px; color:var(--ball); }
+.flash-card .fh-btn{
+  margin-top:10px;
+  width:100%;
+  padding:11px;
+  border-radius:12px;
+  border:none;
+  background:var(--ball);
+  color:#12210A;
+  font-weight:800;
+  font-size:12.5px;
+  cursor:pointer;
+}
+.flash-card .fh-btn:disabled{ background:var(--ink-3); color:var(--muted); }
+
+/* Padel-Pass */
+.pass-card{
+  background: linear-gradient(135deg, var(--ink-3), var(--ink-2));
+  border:1px solid var(--line-soft);
+  border-radius:18px;
+  padding:18px;
+  margin-bottom:16px;
+}
+.pass-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  margin-bottom:12px;
+}
+.pass-club{
+  font-family:'JetBrains Mono', monospace;
+  font-size:10px;
+  color:var(--ball);
+  letter-spacing:0.08em;
+}
+.pass-name{
+  font-family:'Anton', sans-serif;
+  font-size:19px;
+  text-transform:uppercase;
+  margin-top:4px;
+}
+.qr-grid{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:2px;
+  width:44px;
+  height:44px;
+  flex-shrink:0;
+}
+.qr-cell{ background:transparent; border-radius:1px; }
+.qr-cell.on{ background:var(--paper); }
+.pass-divider{
+  border-top:1px dashed var(--line-soft);
+  margin: 4px 0 12px;
+}
+.pass-row{
+  display:flex;
+  justify-content:space-between;
+  font-size:12.5px;
+  padding:6px 0;
+  border-bottom:1px solid var(--line-soft);
+  color:var(--muted);
+}
+.pass-row strong{ color:var(--paper); font-weight:600; }
+.pass-clubs{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-top:12px;
+}
+.pass-club-chip{
+  background: var(--ink);
+  border:1px solid var(--line-soft);
+  border-radius:20px;
+  padding:6px 10px;
+  font-size:10.5px;
+  color:var(--ball);
+}
+.pass-note{
+  font-size:11px;
+  color:var(--muted);
+  line-height:1.6;
+  margin-top:12px;
+}
+
+/* Admin / Betreiber dashboard */
+.admin-badge{
+  display:inline-block;
+  font-family:'JetBrains Mono', monospace;
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  color:#FFC85C;
+  background: rgba(255,200,92,0.1);
+  border:1px solid rgba(255,200,92,0.3);
+  border-radius:20px;
+  padding:5px 11px;
+  margin-bottom:12px;
+}
+.admin-stat-row{
+  display:flex;
+  gap:10px;
+  margin-bottom:18px;
+}
+.admin-stat{
+  flex:1;
+  background: var(--ink-2);
+  border:1px solid var(--line-soft);
+  border-radius:14px;
+  padding:12px;
+}
+.admin-stat .n{
+  font-family:'JetBrains Mono', monospace;
+  font-weight:700;
+  font-size:19px;
+  color:#FFC85C;
+}
+.admin-stat .l{ font-size:10.5px; color:var(--muted); margin-top:2px; }
+
+.admin-notif-box{
+  display:flex;
+  gap:10px;
+  align-items:flex-start;
+  background: rgba(255,200,92,0.07);
+  border:1px solid rgba(255,200,92,0.25);
+  border-radius:14px;
+  padding:13px;
+  margin-bottom:18px;
+  font-size:11.5px;
+  color:var(--muted);
+  line-height:1.5;
+}
+.admin-notif-box strong{ color:#FFC85C; }
+
+.admin-booking-row{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  background: var(--ink-2);
+  border:1px solid var(--line-soft);
+  border-radius:14px;
+  padding:12px 14px;
+  margin-bottom:10px;
+}
+.admin-booking-row.new{ border-color: rgba(255,200,92,0.5); animation: pulseNew 1.6s ease; }
+@keyframes pulseNew{
+  0%{ background: rgba(255,200,92,0.16); }
+  100%{ background: var(--ink-2); }
+}
+.admin-booking-row .abr-time{
+  font-family:'JetBrains Mono', monospace;
+  font-weight:700;
+  font-size:14px;
+  width:46px;
+  flex-shrink:0;
+}
+.admin-booking-row .abr-info{ flex:1; min-width:0; }
+.admin-booking-row .abr-info strong{ font-size:13px; display:block; }
+.admin-booking-row .abr-info span{ font-size:11px; color:var(--muted); }
+.admin-booking-row .abr-price{ font-family:'JetBrains Mono', monospace; font-size:12.5px; color:#FFC85C; }
+</style>
+</head>
+<body>
+
+<div class="stage">
+
+  <div class="intro">
+    <div class="eyebrow">Konzept-Prototyp</div>
+    <h1>Padel<br>Club<br><span>Connect</span></h1>
+    <p>Ein klickbarer Prototyp deines Konzepts: 3-Klick-Leveling, Buchungskalender mit Platzauswahl, Smart Matching, Ladder und Split-Payment. Buchungen und Feedback sind live über eine echte Datenbank mit allen Nutzern geteilt.</p>
+    <div class="tag-row">
+      <div class="chip">Fair-Play Onboarding</div>
+      <div class="chip">Buchungskalender</div>
+      <div class="chip">Smart Matching</div>
+      <div class="chip">Ladder</div>
+      <div class="chip">Split-Payment</div>
+    </div>
+    <div class="admin-link" id="admin-link-btn">📊 Betreiber-Dashboard ansehen →</div>
+  </div>
+
+  <div class="phone">
+    <div class="screen">
+
+      <!-- ONBOARDING Q1 -->
+      <div class="view active" id="view-q1">
+        <div class="statusbar"><span>9:41</span><span>PADEL CLUB CONNECT</span></div>
+        <div class="dots">
+          <div class="dot current"><i></i></div>
+          <div class="dot"><i></i></div>
+          <div class="dot"><i></i></div>
+        </div>
+        <div class="q-label">Frage 1 / 3</div>
+        <div class="q-title">Was ist dein sportlicher Hintergrund?</div>
+
+        <div class="option" data-q="q1" data-val="3">
+          <div class="icon">🎾</div>
+          <div class="txt"><strong>Tennis-Profi</strong><span>Wettkampferfahrung, seit Jahren aktiv</span></div>
+        </div>
+        <div class="option" data-q="q1" data-val="2">
+          <div class="icon">🏸</div>
+          <div class="txt"><strong>Andere Rückschlagsportart</strong><span>Squash, Badminton oder Tischtennis</span></div>
+        </div>
+        <div class="option" data-q="q1" data-val="1">
+          <div class="icon">🏃</div>
+          <div class="txt"><strong>Sportlich, aber neu hier</strong><span>Fit, aber kein Schläger-Sport bisher</span></div>
+        </div>
+        <div class="option" data-q="q1" data-val="0">
+          <div class="icon">🌱</div>
+          <div class="txt"><strong>Kompletter Quereinsteiger</strong><span>Ich probiere Padel zum ersten Mal aus</span></div>
+        </div>
+
+        <div class="spacer"></div>
+        <button class="btn-primary" disabled id="next-q1">Weiter</button>
+      </div>
+
+      <!-- ONBOARDING Q2 -->
+      <div class="view" id="view-q2">
+        <div class="statusbar"><span>9:41</span><span>PADEL CLUB CONNECT</span></div>
+        <div class="dots">
+          <div class="dot done"><i></i></div>
+          <div class="dot current"><i></i></div>
+          <div class="dot"><i></i></div>
+        </div>
+        <div class="q-label">Frage 2 / 3</div>
+        <div class="q-title">Technik-Check: was sitzt schon?</div>
+
+        <div class="option" data-q="q2" data-val="3">
+          <div class="icon">🧱</div>
+          <div class="txt"><strong>Glaswand & Bandeja sicher</strong><span>Ich spiele Rückwände offensiv aus</span></div>
+        </div>
+        <div class="option" data-q="q2" data-val="2">
+          <div class="icon">🪟</div>
+          <div class="txt"><strong>Glaswand klappt meistens</strong><span>Bandeja/Smash noch im Aufbau</span></div>
+        </div>
+        <div class="option" data-q="q2" data-val="1">
+          <div class="icon">🏓</div>
+          <div class="txt"><strong>Grundschläge sitzen</strong><span>Wände sind noch Neuland für mich</span></div>
+        </div>
+        <div class="option" data-q="q2" data-val="0">
+          <div class="icon">🎯</div>
+          <div class="txt"><strong>Ich gewöhne mich noch an den Ball</strong><span>Technik entsteht gerade erst</span></div>
+        </div>
+
+        <div class="spacer"></div>
+        <button class="btn-primary" disabled id="next-q2">Weiter</button>
+      </div>
+
+      <!-- ONBOARDING Q3 -->
+      <div class="view" id="view-q3">
+        <div class="statusbar"><span>9:41</span><span>PADEL CLUB CONNECT</span></div>
+        <div class="dots">
+          <div class="dot done"><i></i></div>
+          <div class="dot done"><i></i></div>
+          <div class="dot current"><i></i></div>
+        </div>
+        <div class="q-label">Frage 3 / 3</div>
+        <div class="q-title">Wie oft spielst du im Monat?</div>
+
+        <div class="option" data-q="q3" data-val="3">
+          <div class="icon">🔥</div>
+          <div class="txt"><strong>Mehr als 8x im Monat</strong><span>Padel ist fester Teil meiner Woche</span></div>
+        </div>
+        <div class="option" data-q="q3" data-val="2">
+          <div class="icon">📅</div>
+          <div class="txt"><strong>4–8x im Monat</strong><span>Ungefähr wöchentlich auf dem Court</span></div>
+        </div>
+        <div class="option" data-q="q3" data-val="1">
+          <div class="icon">🌤️</div>
+          <div class="txt"><strong>1–3x im Monat</strong><span>Wenn Zeit und Wetter passen</span></div>
+        </div>
+        <div class="option" data-q="q3" data-val="0">
+          <div class="icon">✨</div>
+          <div class="txt"><strong>Erstes Mal / sehr selten</strong><span>Ich starte gerade erst richtig</span></div>
+        </div>
+
+        <div class="spacer"></div>
+        <button class="btn-primary" disabled id="next-q3">Level berechnen</button>
+      </div>
+
+      <!-- RESULT -->
+      <div class="view" id="view-result">
+        <div class="statusbar"><span>9:41</span><span>PADEL CLUB CONNECT</span></div>
+        <div style="text-align:center; margin-top:20px;">
+          <div class="q-label" style="justify-content:center;">Fair-Play Onboarding</div>
+          <div class="q-title" style="font-size:20px;">Dein Level steht fest</div>
+        </div>
+        <div class="result-badge">
+          <div class="lvl-num" id="result-num">2</div>
+          <div class="lvl-name" id="result-name">Fortgeschritten</div>
+        </div>
+        <p class="result-sub" id="result-sub">Wir passen dein Level nach jedem Match automatisch an, damit deine Gegner immer auf Augenhöhe spielen.</p>
+        <div class="spacer"></div>
+        <button class="btn-primary" id="go-home">Zum Club-Dashboard</button>
+      </div>
+
+      <!-- HOME -->
+      <div class="view" id="view-home">
+        <div class="home-header">
+          <div class="greet">
+            <span>Willkommen zurück</span>
+            <strong>Hey, Alex</strong>
+          </div>
+          <div class="header-right">
+            <div class="bell-btn" id="bell-btn">🔔<div class="dotbadge"></div></div>
+            <div class="avatar-lvl" data-goto="view-profile" id="home-lvl-badge">L2</div>
+          </div>
+          <div class="notif-panel" id="notif-panel">
+            <div class="notif-item levelup">
+              <div class="ic">🎉</div>
+              <div class="txt"><strong>Level-Aufstieg!</strong><span>Du bist jetzt Fortgeschritten (Level 2) – 4 Siege in Folge.</span></div>
+            </div>
+            <div class="notif-item" data-goto="view-booking">
+              <div class="ic">⚡</div>
+              <div class="txt"><strong>Flash-Slot verfügbar</strong><span>Court 3, heute 20:00 – kurzfristig -20% Rabatt.</span></div>
+            </div>
+            <div class="notif-item">
+              <div class="ic">💳</div>
+              <div class="txt"><strong>Zahlung ausstehend</strong><span>Court 2, heute 18:00 – noch 1 Person offen.</span></div>
+            </div>
+            <div class="notif-item">
+              <div class="ic">🎾</div>
+              <div class="txt"><strong>Neue Matchanfrage</strong><span>Jonas R. möchte mit dir spielen.</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="stat-row">
+          <div class="stat-card"><div class="n">14</div><div class="l">Matches gespielt</div></div>
+          <div class="stat-card"><div class="n">#7</div><div class="l">Club-Ladder</div></div>
+          <div class="stat-card"><div class="n">68%</div><div class="l">Siegquote</div></div>
+        </div>
+
+        <div class="section-label">Schnellzugriff</div>
+        <div class="action-grid">
+          <div class="action-card" data-goto="view-match">
+            <div class="em">🎾</div>
+            <strong>Match finden</strong>
+            <span>Smart Matching & Partnerbörse</span>
+          </div>
+          <div class="action-card" data-goto="view-booking">
+            <div class="em">📅</div>
+            <strong>Court buchen</strong>
+            <span>Freie Plätze reservieren</span>
+          </div>
+          <div class="action-card" data-goto="view-ladder">
+            <div class="em">🏆</div>
+            <strong>Ladder</strong>
+            <span>Rangliste deines Clubs</span>
+          </div>
+          <div class="action-card" data-goto="view-profile">
+            <div class="em">👤</div>
+            <strong>Profil</strong>
+            <span>Level & Einstellungen</span>
+          </div>
+          <div class="action-card" data-goto="view-feedback">
+            <div class="em">💬</div>
+            <strong>Feedback geben</strong>
+            <span>Ideen & Wünsche einreichen</span>
+          </div>
+        </div>
+
+        <div class="section-label">Nächstes Match <span style="color:var(--ball)">Heute, 18:00</span></div>
+        <div class="match-card">
+          <div class="match-avatar">MK</div>
+          <div class="match-info">
+            <strong>Court 2 · Doppel</strong>
+            <div class="meta">
+              <span class="tag-mini">Mit Mia K.</span>
+              <span class="tag-mini">2 offen</span>
+            </div>
+          </div>
+          <button class="match-cta" data-goto="view-pay">→</button>
+        </div>
+
+        <div class="spacer"></div>
+        <div class="tabbar">
+          <div class="tab active" data-goto="view-home"><div class="ic">🏠</div><div class="lb">Home</div></div>
+          <div class="tab" data-goto="view-match"><div class="ic">🎾</div><div class="lb">Match</div></div>
+          <div class="tab" data-goto="view-booking"><div class="ic">📅</div><div class="lb">Buchen</div></div>
+          <div class="tab" data-goto="view-ladder"><div class="ic">🏆</div><div class="lb">Ladder</div></div>
+        </div>
+      </div>
+
+      <!-- MATCHING -->
+      <div class="view" id="view-match">
+        <h2 class="screen-title">Smart Matching</h2>
+        <div class="filter-row">
+          <div class="filter-pill active">Alle</div>
+          <div class="filter-pill">Level 2</div>
+          <div class="filter-pill">Power-Spieler</div>
+          <div class="filter-pill">Linke Seite</div>
+        </div>
+
+        <div class="match-card" data-player="jr">
+          <div class="match-avatar">JR</div>
+          <div class="match-info">
+            <strong>Jonas R.</strong>
+            <div class="meta">
+              <span class="tag-mini">Level 2</span>
+              <span class="tag-mini">🔥 Power</span>
+              <span class="tag-mini">Rechte Seite</span>
+              <span class="tag-mini tf-badge" id="tf-jr"></span>
+            </div>
+          </div>
+          <button class="match-cta" data-request>+</button>
+        </div>
+        <div class="match-card" data-player="sl">
+          <div class="match-avatar">SL</div>
+          <div class="match-info">
+            <strong>Sophie L.</strong>
+            <div class="meta">
+              <span class="tag-mini">Level 2</span>
+              <span class="tag-mini">Kontrolle</span>
+              <span class="tag-mini">Linke Seite</span>
+              <span class="tag-mini tf-badge" id="tf-sl"></span>
+            </div>
+          </div>
+          <button class="match-cta" data-request>+</button>
+        </div>
+        <div class="match-card" data-player="tb">
+          <div class="match-avatar">TB</div>
+          <div class="match-info">
+            <strong>Tom B.</strong>
+            <div class="meta">
+              <span class="tag-mini">Level 3</span>
+              <span class="tag-mini">🔥 Power</span>
+              <span class="tag-mini">Rechte Seite</span>
+              <span class="tag-mini tf-badge" id="tf-tb"></span>
+            </div>
+          </div>
+          <button class="match-cta" data-request>+</button>
+        </div>
+        <div class="match-card" data-player="np">
+          <div class="match-avatar">NP</div>
+          <div class="match-info">
+            <strong>Nina P.</strong>
+            <div class="meta">
+              <span class="tag-mini">Level 1</span>
+              <span class="tag-mini">Kontrolle</span>
+              <span class="tag-mini">Linke Seite</span>
+              <span class="tag-mini tf-badge" id="tf-np"></span>
+            </div>
+          </div>
+          <button class="match-cta" data-request>+</button>
+        </div>
+
+        <div class="spacer"></div>
+        <div class="tabbar">
+          <div class="tab" data-goto="view-home"><div class="ic">🏠</div><div class="lb">Home</div></div>
+          <div class="tab active" data-goto="view-match"><div class="ic">🎾</div><div class="lb">Match</div></div>
+          <div class="tab" data-goto="view-booking"><div class="ic">📅</div><div class="lb">Buchen</div></div>
+          <div class="tab" data-goto="view-ladder"><div class="ic">🏆</div><div class="lb">Ladder</div></div>
+        </div>
+      </div>
+
+      <!-- BOOKING CALENDAR -->
+      <div class="view" id="view-booking">
+        <h2 class="screen-title">Court buchen</h2>
+
+        <div class="flash-card" id="flash-card">
+          <div class="fh-top">
+            <div class="fh-title">⚡ Flash-Slot</div>
+            <div class="fh-timer" id="flash-timer">12:00</div>
+          </div>
+          <div class="fh-body">
+            <div class="fh-info">
+              <strong id="flash-court">Court 3 · Heute 20:00</strong>
+              <span>Kurzfristig frei geworden · Überdacht</span>
+            </div>
+            <div class="fh-price">
+              <div class="old">38€</div>
+              <div class="new" id="flash-price">30,40€</div>
+            </div>
+          </div>
+          <button class="fh-btn" id="flash-btn">Jetzt sichern (-20%)</button>
+        </div>
+
+        <div class="weather-banner" id="weather-banner"></div>
+
+        <div class="date-row" id="date-row"></div>
+        <div class="type-row">
+          <div class="type-pill active" data-type="alle">Alle</div>
+          <div class="type-pill" data-type="offen">☀️ Offen</div>
+          <div class="type-pill" data-type="ueberdacht">🏠 Überdacht</div>
+        </div>
+
+        <div id="slot-list"></div>
+
+        <div class="spacer"></div>
+        <div class="tabbar">
+          <div class="tab" data-goto="view-home"><div class="ic">🏠</div><div class="lb">Home</div></div>
+          <div class="tab" data-goto="view-match"><div class="ic">🎾</div><div class="lb">Match</div></div>
+          <div class="tab active" data-goto="view-booking"><div class="ic">📅</div><div class="lb">Buchen</div></div>
+          <div class="tab" data-goto="view-ladder"><div class="ic">🏆</div><div class="lb">Ladder</div></div>
+        </div>
+      </div>
+
+      <!-- LADDER -->
+      <div class="view" id="view-ladder">
+        <h2 class="screen-title">Club-Ladder</h2>
+
+        <div class="ladder-row" data-player="tb">
+          <div class="ladder-rank">1</div>
+          <div class="ladder-av">TB</div>
+          <div class="ladder-name">Tom B.<span>Level 3</span></div>
+          <div class="ladder-pts">1284</div>
+          <div class="ladder-trend trend-up">▲2</div>
+        </div>
+        <div class="ladder-row" data-player="mk">
+          <div class="ladder-rank">2</div>
+          <div class="ladder-av">MK</div>
+          <div class="ladder-name">Mia K.<span>Level 3</span></div>
+          <div class="ladder-pts">1240</div>
+          <div class="ladder-trend trend-up">▲1</div>
+        </div>
+        <div class="ladder-row" data-player="jr">
+          <div class="ladder-rank">3</div>
+          <div class="ladder-av">JR</div>
+          <div class="ladder-name">Jonas R.<span>Level 2</span></div>
+          <div class="ladder-pts">1198</div>
+          <div class="ladder-trend trend-down">▼1</div>
+        </div>
+        <div class="ladder-row" data-player="sl">
+          <div class="ladder-rank">4</div>
+          <div class="ladder-av">SL</div>
+          <div class="ladder-name">Sophie L.<span>Level 2</span></div>
+          <div class="ladder-pts">1145</div>
+          <div class="ladder-trend trend-up">▲3</div>
+        </div>
+        <div class="ladder-row me" data-goto="view-profile">
+          <div class="ladder-rank">7</div>
+          <div class="ladder-av">AL</div>
+          <div class="ladder-name">Alex L. (Du)<span id="ladder-my-level">Level 2</span></div>
+          <div class="ladder-pts">1032</div>
+          <div class="ladder-trend trend-up">▲1</div>
+        </div>
+        <div class="ladder-row" data-player="np">
+          <div class="ladder-rank">8</div>
+          <div class="ladder-av">NP</div>
+          <div class="ladder-name">Nina P.<span>Level 1</span></div>
+          <div class="ladder-pts">988</div>
+          <div class="ladder-trend trend-down">▼2</div>
+        </div>
+
+        <div class="spacer"></div>
+        <div class="tabbar">
+          <div class="tab" data-goto="view-home"><div class="ic">🏠</div><div class="lb">Home</div></div>
+          <div class="tab" data-goto="view-match"><div class="ic">🎾</div><div class="lb">Match</div></div>
+          <div class="tab" data-goto="view-booking"><div class="ic">📅</div><div class="lb">Buchen</div></div>
+          <div class="tab active" data-goto="view-ladder"><div class="ic">🏆</div><div class="lb">Ladder</div></div>
+        </div>
+      </div>
+
+      <!-- PAYMENT -->
+      <div class="view" id="view-pay">
+        <div class="back-row" data-goto="view-booking">← Zurück zur Buchung</div>
+        <h2 class="screen-title">Split-Payment</h2>
+
+        <div class="booking-card">
+          <div class="top">
+            <div>
+              <div class="court-name" id="pay-court-name">Court 2</div>
+              <div class="when" id="pay-when">Heute · 18:00–19:00</div>
+            </div>
+            <div class="price-tag" id="pay-price">32€</div>
+          </div>
+
+          <div class="split-list">
+            <div class="split-row">
+              <div class="sav">AL</div>
+              <div class="sname">Alex L. (Du)</div>
+              <div class="samt" id="pay-share">8,00€</div>
+              <div class="status-dot paid" title="Bezahlt"></div>
+            </div>
+            <div class="split-row">
+              <div class="sav">MK</div>
+              <div class="sname">Mia K.</div>
+              <div class="samt" id="pay-share2">8,00€</div>
+              <div class="status-dot paid" title="Bezahlt"></div>
+            </div>
+            <div class="split-row">
+              <div class="sav">JR</div>
+              <div class="sname">Jonas R.</div>
+              <div class="samt" id="pay-share3">8,00€</div>
+              <div class="status-dot paid" title="Bezahlt"></div>
+            </div>
+            <div class="split-row">
+              <div class="sav">?</div>
+              <div class="sname">Noch offen</div>
+              <div class="samt" id="pay-share4">8,00€</div>
+              <div class="status-dot pending" title="Ausstehend"></div>
+            </div>
+          </div>
+
+          <div class="progress-track"><div class="progress-fill" style="width:75%"></div></div>
+          <div class="progress-label">3 von 4 bezahlt · Court wird bei Vollzahlung fest reserviert</div>
+        </div>
+
+        <button class="btn-primary" id="pay-btn">Meinen Anteil bezahlen</button>
+        <button class="btn-ghost">Zahlungserinnerung senden</button>
+
+        <div class="spacer"></div>
+        <div class="tabbar">
+          <div class="tab" data-goto="view-home"><div class="ic">🏠</div><div class="lb">Home</div></div>
+          <div class="tab" data-goto="view-match"><div class="ic">🎾</div><div class="lb">Match</div></div>
+          <div class="tab active" data-goto="view-booking"><div class="ic">📅</div><div class="lb">Buchen</div></div>
+          <div class="tab" data-goto="view-ladder"><div class="ic">🏆</div><div class="lb">Ladder</div></div>
+        </div>
+      </div>
+
+      <!-- PROFILE -->
+      <div class="view" id="view-profile">
+        <div class="back-row" data-goto="view-home">← Zurück zum Dashboard</div>
+        <h2 class="screen-title">Mein Profil</h2>
+
+        <div class="profile-head">
+          <div class="avatar-upload-wrap">
+            <div class="profile-avatar" id="my-avatar">AL</div>
+            <div class="avatar-edit-btn" id="avatar-edit-btn" title="Profilbild ändern">✎</div>
+            <input type="file" id="avatar-input" accept="image/*" style="display:none;">
+          </div>
+          <div>
+            <strong>Alex L.</strong>
+            <span>Mitglied seit März 2026</span>
+          </div>
+        </div>
+
+        <div class="section-label">Aktuelles Level</div>
+        <div class="level-chip-row" id="level-chip-row">
+          <div class="level-chip" data-lvl="0" data-name="Beginner">
+            <div class="num">0</div><strong>Beginner</strong>
+          </div>
+          <div class="level-chip" data-lvl="1" data-name="Einsteiger+">
+            <div class="num">1</div><strong>Einsteiger+</strong>
+          </div>
+          <div class="level-chip active" data-lvl="2" data-name="Fortgeschritten">
+            <div class="num">2</div><strong>Fortgeschritten</strong>
+          </div>
+          <div class="level-chip" data-lvl="3" data-name="Profi">
+            <div class="num">3</div><strong>Profi</strong>
+          </div>
+        </div>
+
+        <div class="info-note">
+          Du kannst dein Level hier jederzeit manuell anpassen. Ohne manuelle Änderung verbessert es sich automatisch, sobald du regelmäßig spielst und gewinnst – bei einem Aufstieg bekommst du eine Benachrichtigung.
+        </div>
+
+        <div class="section-label">Skill-Radar</div>
+        <div class="radar-wrap" id="my-radar"></div>
+
+        <div class="section-label" style="margin-top:6px;">Über mich</div>
+        <p style="font-size:12px; color:var(--muted); line-height:1.6; margin-bottom:14px;">
+          Das hier sehen andere Spieler auf deinem Profil – gestalte es ganz nach deinem Geschmack.
+        </p>
+        <div class="save-confirm" id="about-confirm">✓ Profil gespeichert – so sehen dich andere Spieler.</div>
+
+        <div class="edit-field">
+          <label class="edit-label">Erfahrung</label>
+          <input type="text" class="edit-input" id="about-experience" placeholder="z. B. 3 Jahre Padel">
+        </div>
+        <div class="edit-field">
+          <label class="edit-label">Spielhäufigkeit</label>
+          <input type="text" class="edit-input" id="about-frequency" placeholder="z. B. 4–8x im Monat">
+        </div>
+        <div class="edit-field">
+          <label class="edit-label">Sucht</label>
+          <input type="text" class="edit-input" id="about-looking" placeholder="z. B. feste Partnerin/Partner">
+        </div>
+        <div class="edit-field">
+          <label class="edit-label">Kommentar</label>
+          <textarea class="fb-textarea" id="about-bio" style="min-height:80px;" placeholder="Erzähl anderen etwas über deinen Spielstil, was du suchst oder was dir wichtig ist..."></textarea>
+        </div>
+        <button class="btn-primary" id="about-save-btn">Profil speichern</button>
+
+        <button class="btn-ghost" id="retake-quiz">Level neu berechnen (Quiz starten)</button>
+
+        <div class="section-label" style="margin-top:6px;">Aktivität</div>
+        <div class="activity-item levelup">
+          <div class="ic">🎉</div>
+          <div class="txt"><strong>Level-Aufstieg auf Fortgeschritten</strong><span>Nach 4 Siegen in Folge · vor 3 Tagen</span></div>
+        </div>
+        <div class="activity-item win">
+          <div class="ic">✅</div>
+          <div class="txt"><strong>Sieg gegen Nina P. & Tom B.</strong><span>Court 1 · vor 5 Tagen</span></div>
+        </div>
+        <div class="activity-item">
+          <div class="ic">❌</div>
+          <div class="txt"><strong>Niederlage gegen Mia K. & Jonas R.</strong><span>Court 3 · vor 9 Tagen</span></div>
+        </div>
+
+        <div class="section-label" style="margin-top:6px;">Dein Padel-Pass</div>
+        <div class="pass-card">
+          <div class="pass-top">
+            <div>
+              <div class="pass-club">PADEL CLUB CONNECT</div>
+              <div class="pass-name">Alex L.</div>
+            </div>
+            <div class="qr-grid">
+              <div class="qr-cell on"></div><div class="qr-cell on"></div><div class="qr-cell on"></div><div class="qr-cell"></div><div class="qr-cell on"></div>
+              <div class="qr-cell on"></div><div class="qr-cell"></div><div class="qr-cell on"></div><div class="qr-cell"></div><div class="qr-cell"></div>
+              <div class="qr-cell on"></div><div class="qr-cell on"></div><div class="qr-cell on"></div><div class="qr-cell"></div><div class="qr-cell on"></div>
+              <div class="qr-cell"></div><div class="qr-cell"></div><div class="qr-cell"></div><div class="qr-cell on"></div><div class="qr-cell"></div>
+              <div class="qr-cell on"></div><div class="qr-cell"></div><div class="qr-cell on"></div><div class="qr-cell"></div><div class="qr-cell on"></div>
+            </div>
+          </div>
+          <div class="pass-divider"></div>
+          <div class="pass-row"><span>Level</span><strong id="pass-level">Fortgeschritten</strong></div>
+          <div class="pass-row"><span>Matches gesamt</span><strong>14</strong></div>
+          <div class="pass-row"><span>Mitglied seit</span><strong>März 2026</strong></div>
+          <div class="pass-clubs">
+            <span class="pass-club-chip">✓ Padel Base Wien</span>
+            <span class="pass-club-chip">✓ Padel Point Graz</span>
+          </div>
+          <div class="pass-note">Dein Level und deine Reputation gelten club-übergreifend – überall dort nutzbar, wo Padel Club Connect im Einsatz ist.</div>
+        </div>
+
+        <button class="btn-ghost" data-goto="view-feedback" style="margin-top:4px;">💬 Verbesserungsvorschlag einreichen</button>
+
+        <div class="spacer"></div>
+        <div class="tabbar">
+          <div class="tab" data-goto="view-home"><div class="ic">🏠</div><div class="lb">Home</div></div>
+          <div class="tab" data-goto="view-match"><div class="ic">🎾</div><div class="lb">Match</div></div>
+          <div class="tab" data-goto="view-booking"><div class="ic">📅</div><div class="lb">Buchen</div></div>
+          <div class="tab" data-goto="view-ladder"><div class="ic">🏆</div><div class="lb">Ladder</div></div>
+        </div>
+      </div>
+
+      <!-- OTHER PLAYER PROFILE -->
+      <div class="view" id="view-player">
+        <div class="back-row" id="pp-back">← Zurück</div>
+        <h2 class="screen-title">Spielerprofil</h2>
+
+        <div class="pp-head">
+          <div class="pp-avatar" id="pp-avatar">JR</div>
+          <div>
+            <div class="name" id="pp-name">Jonas R.</div>
+            <div class="sub" id="pp-sub">29 Jahre · Mitglied seit Jan 2025</div>
+          </div>
+        </div>
+
+        <div class="pp-badges">
+          <div class="pp-badge accent" id="pp-level-badge">Level 2 · Fortgeschritten</div>
+          <div class="pp-badge" id="pp-style-badge">🔥 Power-Spieler</div>
+          <div class="pp-badge" id="pp-side-badge">Rechte Seite</div>
+        </div>
+
+        <div class="pp-stat-grid">
+          <div class="pp-stat"><div class="n" id="pp-matches">22</div><div class="l">Matches</div></div>
+          <div class="pp-stat"><div class="n" id="pp-winrate">59%</div><div class="l">Siegquote</div></div>
+          <div class="pp-stat"><div class="n" id="pp-rank">#3</div><div class="l">Ladder</div></div>
+        </div>
+
+        <div class="team-fit-box">
+          <div class="tf-top">
+            <span class="tf-label">Team-Fit mit dir</span>
+            <span class="tf-score" id="pp-tf-score">82%</span>
+          </div>
+          <div class="tf-bar-track"><div class="tf-bar-fill" id="pp-tf-bar" style="width:82%"></div></div>
+          <div class="tf-desc" id="pp-tf-desc">Ergänzt deine Netz-Schwäche besonders gut – starke Kombination im Doppel.</div>
+        </div>
+
+        <div class="section-label">Skill-Radar</div>
+        <div class="radar-wrap" id="pp-radar"></div>
+
+        <div class="section-label">Details</div>
+        <div class="pp-detail-row"><div class="k">Erfahrung</div><div class="v" id="pp-experience">3 Jahre Padel</div></div>
+        <div class="pp-detail-row"><div class="k">Spielhäufigkeit</div><div class="v" id="pp-frequency">4–8x im Monat</div></div>
+        <div class="pp-detail-row"><div class="k">Sucht</div><div class="v" id="pp-looking">Feste Partnerin/Partner</div></div>
+
+        <div class="pp-bio" id="pp-bio">Spielt am liebsten aggressiv am Netz und sucht feste Doppelpartner für die Saison.</div>
+
+        <button class="btn-primary" id="pp-request-btn">Als Partner anfragen</button>
+        <button class="btn-ghost" data-goto="view-match">Zurück zur Übersicht</button>
+
+        <div class="spacer"></div>
+        <div class="tabbar">
+          <div class="tab" data-goto="view-home"><div class="ic">🏠</div><div class="lb">Home</div></div>
+          <div class="tab" data-goto="view-match"><div class="ic">🎾</div><div class="lb">Match</div></div>
+          <div class="tab" data-goto="view-booking"><div class="ic">📅</div><div class="lb">Buchen</div></div>
+          <div class="tab" data-goto="view-ladder"><div class="ic">🏆</div><div class="lb">Ladder</div></div>
+        </div>
+      </div>
+
+      <!-- FEEDBACK -->
+      <div class="view" id="view-feedback">
+        <div class="back-row" data-goto="view-home">← Zurück zum Dashboard</div>
+        <h2 class="screen-title">Feedback geben</h2>
+        <p style="font-size:12.5px; color:var(--muted); line-height:1.6; margin-bottom:18px;">
+          Deine Idee, dein Bug-Report oder dein Verbesserungsvorschlag geht direkt an das Entwickler-Team und fließt in die nächste Version der App ein.
+        </p>
+
+        <div class="section-label">Kategorie</div>
+        <div class="fb-cat-row" id="fb-cat-row">
+          <div class="fb-cat active" data-cat="Idee">💡 Idee</div>
+          <div class="fb-cat" data-cat="Verbesserung">🔧 Verbesserung</div>
+          <div class="fb-cat" data-cat="Bug">🐞 Bug</div>
+          <div class="fb-cat" data-cat="Lob">❤️ Lob</div>
+        </div>
+
+        <div class="section-label">Dein Kommentar</div>
+        <textarea class="fb-textarea" id="fb-text" placeholder="Was sollen wir als Nächstes bauen oder verbessern?"></textarea>
+
+        <div class="fb-confirm" id="fb-confirm">✓ Danke! Dein Feedback wurde übermittelt.</div>
+
+        <button class="btn-primary" id="fb-submit" disabled>Feedback senden</button>
+
+        <div class="section-label" style="margin-top:8px;">Alle Beiträge <span style="color:var(--ball)">Live von allen Spielern</span></div>
+        <div id="fb-list">
+          <div class="empty-state">Noch kein Feedback gesendet.</div>
+        </div>
+
+        <div class="spacer"></div>
+        <div class="tabbar">
+          <div class="tab" data-goto="view-home"><div class="ic">🏠</div><div class="lb">Home</div></div>
+          <div class="tab" data-goto="view-match"><div class="ic">🎾</div><div class="lb">Match</div></div>
+          <div class="tab" data-goto="view-booking"><div class="ic">📅</div><div class="lb">Buchen</div></div>
+          <div class="tab" data-goto="view-ladder"><div class="ic">🏆</div><div class="lb">Ladder</div></div>
+        </div>
+      </div>
+
+      <!-- ADMIN / BETREIBER DASHBOARD -->
+      <div class="view" id="view-admin">
+        <div class="back-row" data-goto="view-home">← Zurück zur Spieler-Ansicht</div>
+        <div class="admin-badge">Betreiber-Ansicht</div>
+        <h2 class="screen-title">Live-Buchungen</h2>
+
+        <div class="admin-stat-row">
+          <div class="admin-stat"><div class="n" id="admin-count">1</div><div class="l">Buchungen heute</div></div>
+          <div class="admin-stat"><div class="n" id="admin-revenue">32€</div><div class="l">Umsatz heute</div></div>
+          <div class="admin-stat"><div class="n">78%</div><div class="l">Auslastung</div></div>
+        </div>
+
+        <div class="admin-notif-box">
+          📧 <span><strong>E-Mail-Benachrichtigung aktiv:</strong> Bei jeder neuen Buchung geht automatisch eine Nachricht an kontakt@dein-club.at – zusätzlich zu dieser Live-Ansicht, die du z. B. auf einem Tablet an der Rezeption offen lassen kannst.</span>
+        </div>
+
+        <div class="section-label">Heute<span style="color:#FFC85C">Live</span></div>
+        <div id="admin-booking-list"></div>
+
+        <div class="spacer"></div>
+        <div class="tabbar">
+          <div class="tab" data-goto="view-home"><div class="ic">🏠</div><div class="lb">Home</div></div>
+          <div class="tab" data-goto="view-match"><div class="ic">🎾</div><div class="lb">Match</div></div>
+          <div class="tab" data-goto="view-booking"><div class="ic">📅</div><div class="lb">Buchen</div></div>
+          <div class="tab" data-goto="view-ladder"><div class="ic">🏆</div><div class="lb">Ladder</div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const sb = window.supabase.createClient(
+  'https://awaqsnueqnkzuhduheim.supabase.co',
+  'sb_publishable_Mqi4aSWw49THaHM1pjzGEA_7JPNxrUz'
+);
+
+const answers = {};
+const levelNames = ['Beginner', 'Einsteiger+', 'Fortgeschritten', 'Profi'];
+
+function goto(id){
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.getElementById('notif-panel').classList.remove('open');
+  const screen = document.querySelector('.screen');
+  screen.scrollTop = 0;
+}
+
+document.addEventListener('click', (e) => {
+  const gotoEl = e.target.closest('[data-goto]');
+  if(gotoEl){ goto(gotoEl.getAttribute('data-goto')); }
+});
+
+function setLevelEverywhere(num, name){
+  document.getElementById('home-lvl-badge').textContent = 'L' + num;
+  document.getElementById('ladder-my-level').textContent = 'Level ' + num;
+  const passLevel = document.getElementById('pass-level');
+  if(passLevel) passLevel.textContent = name;
+  document.querySelectorAll('#level-chip-row .level-chip').forEach(chip => {
+    chip.classList.toggle('active', chip.getAttribute('data-lvl') === String(num));
+  });
+}
+
+function wireQuestion(qKey, nextBtnId, onNext){
+  const opts = document.querySelectorAll(`.option[data-q="${qKey}"]`);
+  const btn = document.getElementById(nextBtnId);
+  opts.forEach(opt => {
+    opt.addEventListener('click', () => {
+      opts.forEach(o => o.classList.remove('selected'));
+      opt.classList.add('selected');
+      answers[qKey] = parseInt(opt.getAttribute('data-val'), 10);
+      btn.disabled = false;
+    });
+  });
+  btn.addEventListener('click', onNext);
+}
+
+wireQuestion('q1', 'next-q1', () => goto('view-q2'));
+wireQuestion('q2', 'next-q2', () => goto('view-q3'));
+wireQuestion('q3', 'next-q3', () => {
+  const total = (answers.q1 || 0) + (answers.q2 || 0) + (answers.q3 || 0);
+  let num, name, sub;
+  if(total >= 7){
+    num = 3; name = 'Profi';
+    sub = 'Starke Technik und viel Spielpraxis. Wir matchen dich mit Gegnern, die dich fordern.';
+  } else if(total >= 4){
+    num = 2; name = 'Fortgeschritten';
+    sub = 'Solide Grundlagen und regelmäßige Praxis. Dein Level passt sich künftig automatisch an dein Abschneiden an.';
+  } else if(total >= 2){
+    num = 1; name = 'Einsteiger+';
+    sub = 'Du bist auf dem Weg. Wir finden Mitspieler, mit denen du dich sicher weiterentwickelst.';
+  } else {
+    num = 0; name = 'Beginner';
+    sub = 'Willkommen im Club! Wir starten dich behutsam mit anderen Neulingen und Coaches.';
+  }
+  document.getElementById('result-num').textContent = num;
+  document.getElementById('result-name').textContent = name;
+  document.getElementById('result-sub').textContent = sub;
+  setLevelEverywhere(num, name);
+  goto('view-result');
+});
+
+document.getElementById('go-home').addEventListener('click', () => goto('view-home'));
+document.getElementById('retake-quiz').addEventListener('click', () => goto('view-q1'));
+
+/* Profile picture upload */
+const avatarInput = document.getElementById('avatar-input');
+const myAvatar = document.getElementById('my-avatar');
+document.getElementById('avatar-edit-btn').addEventListener('click', (e) => {
+  e.stopPropagation();
+  avatarInput.click();
+});
+myAvatar.addEventListener('click', () => avatarInput.click());
+avatarInput.addEventListener('change', () => {
+  const file = avatarInput.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    myAvatar.style.backgroundImage = `url(${ev.target.result})`;
+    myAvatar.textContent = '';
+  };
+  reader.readAsDataURL(file);
+});
+
+/* Editable "about me" section */
+document.getElementById('about-save-btn').addEventListener('click', () => {
+  const confirm = document.getElementById('about-confirm');
+  confirm.classList.add('show');
+  setTimeout(() => confirm.classList.remove('show'), 2500);
+});
+
+document.getElementById('pay-btn').addEventListener('click', function(){
+  this.textContent = 'Bezahlt ✓';
+  this.disabled = true;
+  this.style.opacity = '0.6';
+});
+
+/* Notification bell toggle */
+document.getElementById('bell-btn').addEventListener('click', (e) => {
+  e.stopPropagation();
+  document.getElementById('notif-panel').classList.toggle('open');
+});
+document.addEventListener('click', (e) => {
+  const panel = document.getElementById('notif-panel');
+  if(panel.classList.contains('open') && !panel.contains(e.target) && e.target.id !== 'bell-btn'){
+    panel.classList.remove('open');
+  }
+});
+
+/* Manual level change in profile */
+document.querySelectorAll('#level-chip-row .level-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    const num = chip.getAttribute('data-lvl');
+    const name = chip.getAttribute('data-name');
+    setLevelEverywhere(num, name);
+  });
+});
+
+/* Booking calendar data */
+const today = new Date(2026, 6, 5);
+const dayLabels = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+const dateKeys = [];
+for(let i=0;i<6;i++){
+  const d = new Date(today);
+  d.setDate(today.getDate()+i);
+  dateKeys.push({
+    key: d.toISOString().slice(0,10),
+    label: i===0 ? 'Heute' : i===1 ? 'Morgen' : dayLabels[d.getDay()],
+    num: d.getDate()
+  });
+}
+
+const slotsByDate = {};
+dateKeys.forEach((d, idx) => {
+  slotsByDate[d.key] = [
+    { time:'16:00', court:'Court 1', type:'offen', price:32, taken: idx===0 },
+    { time:'17:00', court:'Court 3', type:'ueberdacht', price:38, taken: false },
+    { time:'18:00', court:'Court 2', type:'offen', price:32, taken: idx===0 },
+    { time:'19:00', court:'Court 4', type:'ueberdacht', price:38, taken: idx % 2 === 0 },
+    { time:'20:00', court:'Court 1', type:'offen', price:32, taken: false },
+    { time:'21:00', court:'Court 3', type:'ueberdacht', price:38, taken: idx===2 },
+  ];
+});
+
+const weatherByDate = [
+  { icon:'☀️', temp:26, rain:5 },
+  { icon:'⛅', temp:23, rain:20 },
+  { icon:'🌧️', temp:19, rain:75 },
+  { icon:'⛈️', temp:18, rain:85 },
+  { icon:'🌤️', temp:24, rain:15 },
+  { icon:'☀️', temp:27, rain:5 },
+];
+
+let selectedDate = dateKeys[0].key;
+let selectedType = 'alle';
+
+function updateWeatherBanner(){
+  const idx = dateKeys.findIndex(d => d.key === selectedDate);
+  const w = weatherByDate[idx];
+  const banner = document.getElementById('weather-banner');
+  if(w.rain >= 50){
+    banner.classList.add('show');
+    banner.innerHTML = `🌧️ Regenwahrscheinlichkeit ${w.rain}% – wir zeigen dir automatisch bevorzugt überdachte Plätze.`;
+    selectedType = 'ueberdacht';
+    document.querySelectorAll('.type-pill').forEach(p => p.classList.toggle('active', p.getAttribute('data-type') === 'ueberdacht'));
+  } else {
+    banner.classList.remove('show');
+  }
+}
+
+function renderDateRow(){
+  const row = document.getElementById('date-row');
+  row.innerHTML = '';
+  dateKeys.forEach((d, idx) => {
+    const w = weatherByDate[idx];
+    const el = document.createElement('div');
+    el.className = 'date-pill' + (d.key === selectedDate ? ' active' : '');
+    el.innerHTML = `<div class="d">${d.label}</div><div class="n">${d.num}</div><div class="w">${w.icon}</div><div class="wt">${w.temp}°</div>`;
+    el.addEventListener('click', () => { selectedDate = d.key; renderDateRow(); updateWeatherBanner(); renderSlots(); });
+    row.appendChild(el);
+  });
+}
+
+/* Shared "club bookings" – now backed by a real Supabase database.
+   Every player and the Betreiber-Dashboard see the same live data,
+   across devices, in real time. */
+let clubBookings = [];
+
+function renderAdminBookings(highlightLast){
+  const list = document.getElementById('admin-booking-list');
+  if(!list) return;
+  if(clubBookings.length === 0){
+    list.innerHTML = '<div class="empty-state">Noch keine Buchungen heute.</div>';
+  } else {
+    list.innerHTML = '';
+    clubBookings.slice().reverse().forEach((b, revIdx) => {
+      const isNewest = highlightLast && revIdx === 0;
+      const el = document.createElement('div');
+      el.className = 'admin-booking-row' + (isNewest ? ' new' : '');
+      const typeLabel = b.type === 'offen' ? '☀️ Offen' : '🏠 Überdacht';
+      el.innerHTML = `
+        <div class="abr-time">${b.time}</div>
+        <div class="abr-info">
+          <strong>${b.court} · ${b.player_name}</strong>
+          <span>${b.date_label} · ${typeLabel}</span>
+        </div>
+        <div class="abr-price">${b.price}€</div>
+      `;
+      list.appendChild(el);
+    });
+  }
+  document.getElementById('admin-count').textContent = clubBookings.length;
+  const revenue = clubBookings.reduce((sum, b) => sum + Number(b.price), 0);
+  document.getElementById('admin-revenue').textContent = revenue.toFixed(2).replace('.00','') + '€';
+}
+
+/* Save a booking to the shared database. Every open instance of the app
+   (players + Betreiber-Dashboard) will pick it up via the realtime subscription below. */
+async function saveBooking(booking){
+  const { error } = await sb.from('bookings').insert([booking]);
+  if(error) console.error('Buchung konnte nicht gespeichert werden:', error);
+}
+
+async function loadBookings(){
+  const { data, error } = await sb.from('bookings').select('*').order('created_at', { ascending: true });
+  if(error){ console.error('Buchungen konnten nicht geladen werden:', error); return; }
+  clubBookings = data || [];
+  renderAdminBookings(false);
+}
+
+sb.channel('bookings-live')
+  .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'bookings' }, (payload) => {
+    clubBookings.push(payload.new);
+    renderAdminBookings(true);
+  })
+  .subscribe();
+
+loadBookings();
+
+document.getElementById('admin-link-btn').addEventListener('click', () => {
+  renderAdminBookings(false);
+  goto('view-admin');
+});
+
+function renderSlots(){
+  const list = document.getElementById('slot-list');
+  list.innerHTML = '';
+  const slots = slotsByDate[selectedDate].filter(s => selectedType === 'alle' || s.type === selectedType);
+  if(slots.length === 0){
+    list.innerHTML = '<div class="empty-state">Keine Plätze für diesen Filter verfügbar.</div>';
+    return;
+  }
+  slots.forEach(s => {
+    const el = document.createElement('div');
+    el.className = 'slot-card' + (s.taken ? ' taken' : '');
+    const typeLabel = s.type === 'offen' ? '☀️ Offen' : '🏠 Überdacht';
+    const typeClass = s.type === 'offen' ? 'offen' : 'ueberdacht';
+    el.innerHTML = `
+      <div class="slot-time">${s.time}</div>
+      <div class="slot-info">
+        <strong>${s.court}</strong>
+        <div class="meta"><span class="court-type-badge ${typeClass}">${typeLabel}</span></div>
+      </div>
+      <div class="slot-price">${s.price}€</div>
+      <button class="slot-btn" ${s.taken ? 'disabled' : ''}>${s.taken ? 'Belegt' : 'Reservieren'}</button>
+    `;
+    if(!s.taken){
+      el.querySelector('.slot-btn').addEventListener('click', () => {
+        s.taken = true;
+        const dateLabelObj = dateKeys.find(d => d.key === selectedDate);
+        const share = (s.price/4).toFixed(2).replace('.', ',') + '€';
+        document.getElementById('pay-court-name').textContent = s.court;
+        document.getElementById('pay-when').textContent = `${dateLabelObj.label} · ${s.time}–${(parseInt(s.time)+1)}:00`;
+        document.getElementById('pay-price').textContent = s.price + '€';
+        document.getElementById('pay-share').textContent = share;
+        document.getElementById('pay-share2').textContent = share;
+        document.getElementById('pay-share3').textContent = share;
+        document.getElementById('pay-share4').textContent = share;
+        saveBooking({ date_label: dateLabelObj.label, time: s.time, court: s.court, type: s.type, price: s.price, player_name: 'Alex L.' });
+        goto('view-pay');
+        renderSlots();
+      });
+    }
+    list.appendChild(el);
+  });
+}
+
+/* Other players' profile data */
+const players = {
+  jr: { name:'Jonas R.', age:29, since:'Jan 2025', level:2, levelName:'Fortgeschritten', style:'🔥 Power-Spieler', side:'Rechte Seite', matches:22, winRate:59, rank:'#3', experience:'3 Jahre Padel', frequency:'4–8x im Monat', looking:'Feste Partnerin/Partner', bio:'Spielt am liebsten aggressiv am Netz und sucht feste Doppelpartner für die Saison.' },
+  sl: { name:'Sophie L.', age:34, since:'Sep 2024', level:2, levelName:'Fortgeschritten', style:'Kontrolle', side:'Linke Seite', matches:31, winRate:52, rank:'#4', experience:'2 Jahre Padel, davor Tennis', frequency:'1–3x im Monat', looking:'Lockere Matches am Wochenende', bio:'Setzt auf platzierte Bälle statt Power und freut sich über geduldige Ballwechsel.' },
+  tb: { name:'Tom B.', age:26, since:'Mai 2024', level:3, levelName:'Profi', style:'🔥 Power-Spieler', side:'Rechte Seite', matches:47, winRate:71, rank:'#1', experience:'6 Jahre Padel, Turniererfahrung', frequency:'Mehr als 8x im Monat', looking:'Sparringspartner auf hohem Niveau', bio:'Ehemaliger Leistungssportler, der die Ladder anführt und gezielt fordernde Gegner sucht.' },
+  np: { name:'Nina P.', age:22, since:'März 2026', level:1, levelName:'Einsteiger+', style:'Kontrolle', side:'Linke Seite', matches:8, winRate:38, rank:'#8', experience:'Seit 4 Monaten dabei', frequency:'1–3x im Monat', looking:'Geduldige Mitspieler zum Lernen', bio:'Neu im Club und noch dabei, Wände und Aufschlag sicherer zu machen.' },
+  mk: { name:'Mia K.', age:31, since:'Nov 2023', level:3, levelName:'Profi', style:'Kontrolle', side:'Linke Seite', matches:53, winRate:66, rank:'#2', experience:'5 Jahre Padel', frequency:'Mehr als 8x im Monat', looking:'Feste Partnerin für Turniere', bio:'Ruhige, taktische Spielerin, die Fehler des Gegners geduldig ausnutzt.' },
+};
+
+/* Skill vectors (0-100) for the radar chart: power, control, mobility, net, consistency */
+const skillLabels = ['Power','Kontrolle','Beweglk.','Netz','Konstanz'];
+const skillKeys = ['power','control','mobility','net','consistency'];
+const mySkills = { power:55, control:60, mobility:65, net:50, consistency:58 };
+const playerSkills = {
+  jr: { power:80, control:45, mobility:60, net:55, consistency:50 },
+  sl: { power:40, control:78, mobility:55, net:60, consistency:70 },
+  tb: { power:88, control:60, mobility:75, net:70, consistency:65 },
+  np: { power:35, control:40, mobility:50, net:30, consistency:35 },
+  mk: { power:50, control:82, mobility:60, net:75, consistency:80 },
+};
+
+function radarSVG(values){
+  const size = 180, cx = size/2, cy = size/2, R = 62, n = values.length;
+  const angleFor = i => (Math.PI*2*i/n) - Math.PI/2;
+  const pointAt = (i, frac) => {
+    const a = angleFor(i);
+    return [cx + Math.cos(a)*R*frac, cy + Math.sin(a)*R*frac];
+  };
+  let grid = '';
+  [0.33,0.66,1].forEach(frac => {
+    const pts = [];
+    for(let i=0;i<n;i++){ pts.push(pointAt(i,frac).join(',')); }
+    grid += `<polygon points="${pts.join(' ')}" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>`;
+  });
+  let axes = '';
+  for(let i=0;i<n;i++){
+    const [x,y] = pointAt(i,1);
+    axes += `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>`;
+  }
+  const valuePts = [];
+  for(let i=0;i<n;i++){ valuePts.push(pointAt(i, values[i]/100).join(',')); }
+  const valuePoly = `<polygon points="${valuePts.join(' ')}" fill="rgba(201,245,59,0.25)" stroke="#C9F53B" stroke-width="2"/>`;
+  let labelsSvg = '';
+  for(let i=0;i<n;i++){
+    const [x,y] = pointAt(i, 1.32);
+    labelsSvg += `<text x="${x}" y="${y}" font-size="9" fill="#8C9AB5" text-anchor="middle" dominant-baseline="middle" font-family="JetBrains Mono, monospace">${skillLabels[i]}</text>`;
+  }
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">${grid}${axes}${valuePoly}${labelsSvg}</svg>`;
+}
+
+function computeTeamFit(a, b){
+  let synergy = 0, bestGap = -999, bestKey = skillKeys[0];
+  let sumA = 0, sumB = 0;
+  skillKeys.forEach(k => {
+    const gap = b[k] - a[k];
+    synergy += Math.max(0, gap);
+    sumA += a[k]; sumB += b[k];
+    if(gap > bestGap){ bestGap = gap; bestKey = k; }
+  });
+  const avgLevel = (sumA + sumB) / (skillKeys.length * 2);
+  let score = Math.round(55 + (synergy/skillKeys.length) * 0.5 + (avgLevel - 50) * 0.3);
+  score = Math.max(45, Math.min(97, score));
+  const labelMap = { power:'Power', control:'Kontrolle', mobility:'Beweglichkeit', net:'Netzspiel', consistency:'Konstanz' };
+  return { score, axisLabel: labelMap[bestKey] };
+}
+
+document.getElementById('my-radar').innerHTML = radarSVG(skillKeys.map(k => mySkills[k]));
+
+let playerProfileOrigin = 'view-match';
+
+function openPlayerProfile(key, originView){
+  const p = players[key];
+  if(!p) return;
+  playerProfileOrigin = originView;
+  document.getElementById('pp-avatar').textContent = key.toUpperCase();
+  document.getElementById('pp-name').textContent = p.name;
+  document.getElementById('pp-sub').textContent = `${p.age} Jahre · Mitglied seit ${p.since}`;
+  document.getElementById('pp-level-badge').textContent = `Level ${p.level} · ${p.levelName}`;
+  document.getElementById('pp-style-badge').textContent = p.style;
+  document.getElementById('pp-side-badge').textContent = p.side;
+  document.getElementById('pp-matches').textContent = p.matches;
+  document.getElementById('pp-winrate').textContent = p.winRate + '%';
+  document.getElementById('pp-rank').textContent = p.rank;
+  document.getElementById('pp-experience').textContent = p.experience;
+  document.getElementById('pp-frequency').textContent = p.frequency;
+  document.getElementById('pp-looking').textContent = p.looking;
+  document.getElementById('pp-bio').textContent = p.bio;
+  const sk = playerSkills[key];
+  document.getElementById('pp-radar').innerHTML = radarSVG(skillKeys.map(k => sk[k]));
+  const fit = computeTeamFit(mySkills, sk);
+  document.getElementById('pp-tf-score').textContent = fit.score + '%';
+  document.getElementById('pp-tf-bar').style.width = fit.score + '%';
+  document.getElementById('pp-tf-desc').textContent = `Ergänzt dich besonders bei ${fit.axisLabel} – ${fit.score >= 75 ? 'starke Kombination im Doppel' : fit.score >= 60 ? 'solide gemeinsame Basis' : 'eher unterschiedliche Spielstile'}.`;
+  const btn = document.getElementById('pp-request-btn');
+  btn.textContent = 'Als Partner anfragen';
+  btn.disabled = false;
+  btn.style.opacity = '1';
+  goto('view-player');
+}
+
+/* Team-fit mini badges on match cards */
+Object.keys(playerSkills).forEach(key => {
+  const el = document.getElementById('tf-' + key);
+  if(el){
+    const fit = computeTeamFit(mySkills, playerSkills[key]);
+    el.textContent = '🤝 ' + fit.score + '% Fit';
+  }
+});
+
+document.addEventListener('click', (e) => {
+  const reqBtn = e.target.closest('[data-request]');
+  if(reqBtn){
+    e.stopPropagation();
+    reqBtn.textContent = '✓';
+    reqBtn.disabled = true;
+    return;
+  }
+  const playerEl = e.target.closest('[data-player]');
+  if(playerEl){
+    const originView = document.querySelector('.view.active').id;
+    openPlayerProfile(playerEl.getAttribute('data-player'), originView);
+  }
+});
+
+document.getElementById('pp-back').addEventListener('click', () => goto(playerProfileOrigin));
+document.getElementById('pp-request-btn').addEventListener('click', function(){
+  this.textContent = 'Anfrage gesendet ✓';
+  this.disabled = true;
+  this.style.opacity = '0.7';
+});
+
+/* Feedback form */
+let selectedFbCat = 'Idee';
+let feedbackEntries = [];
+
+document.querySelectorAll('.fb-cat').forEach(cat => {
+  cat.addEventListener('click', () => {
+    document.querySelectorAll('.fb-cat').forEach(c => c.classList.remove('active'));
+    cat.classList.add('active');
+    selectedFbCat = cat.getAttribute('data-cat');
+  });
+});
+
+const fbTextarea = document.getElementById('fb-text');
+const fbSubmit = document.getElementById('fb-submit');
+fbTextarea.addEventListener('input', () => {
+  fbSubmit.disabled = fbTextarea.value.trim().length === 0;
+});
+
+function timeAgo(isoString){
+  if(!isoString) return 'gerade eben';
+  const diffMs = Date.now() - new Date(isoString).getTime();
+  const mins = Math.round(diffMs / 60000);
+  if(mins < 1) return 'gerade eben';
+  if(mins < 60) return `vor ${mins} Min.`;
+  const hrs = Math.round(mins / 60);
+  if(hrs < 24) return `vor ${hrs} Std.`;
+  return `vor ${Math.round(hrs/24)} Tg.`;
+}
+
+function renderFeedbackList(){
+  const list = document.getElementById('fb-list');
+  if(feedbackEntries.length === 0){
+    list.innerHTML = '<div class="empty-state">Noch kein Feedback gesendet.</div>';
+    return;
+  }
+  list.innerHTML = '';
+  feedbackEntries.slice().reverse().forEach(entry => {
+    const el = document.createElement('div');
+    el.className = 'fb-list-item';
+    el.innerHTML = `
+      <div class="fb-top">
+        <span class="fb-cat-tag">${entry.category}</span>
+        <span class="fb-time">${timeAgo(entry.created_at)}</span>
+      </div>
+      <div class="fb-text">${entry.message}</div>
+    `;
+    list.appendChild(el);
+  });
+}
+
+async function loadFeedback(){
+  const { data, error } = await sb.from('feedback').select('*').order('created_at', { ascending: true });
+  if(error){ console.error('Feedback konnte nicht geladen werden:', error); return; }
+  feedbackEntries = data || [];
+  renderFeedbackList();
+}
+
+sb.channel('feedback-live')
+  .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'feedback' }, (payload) => {
+    feedbackEntries.push(payload.new);
+    renderFeedbackList();
+  })
+  .subscribe();
+
+loadFeedback();
+
+fbSubmit.addEventListener('click', async () => {
+  const text = fbTextarea.value.trim();
+  if(!text) return;
+  fbSubmit.disabled = true;
+  fbSubmit.textContent = 'Wird gesendet...';
+  const { error } = await sb.from('feedback').insert([{ category: selectedFbCat, message: text }]);
+  fbSubmit.textContent = 'Feedback senden';
+  if(error){
+    console.error('Feedback konnte nicht gespeichert werden:', error);
+    fbSubmit.disabled = false;
+    return;
+  }
+  fbTextarea.value = '';
+  const confirm = document.getElementById('fb-confirm');
+  confirm.classList.add('show');
+  setTimeout(() => confirm.classList.remove('show'), 2500);
+});
+
+document.querySelectorAll('.type-pill').forEach(p => {
+  p.addEventListener('click', () => {
+    document.querySelectorAll('.type-pill').forEach(x => x.classList.remove('active'));
+    p.classList.add('active');
+    selectedType = p.getAttribute('data-type');
+    renderSlots();
+  });
+});
+
+renderDateRow();
+updateWeatherBanner();
+renderSlots();
+
+/* Flash-Slot countdown */
+let flashSeconds = 12 * 60;
+const flashTimerEl = document.getElementById('flash-timer');
+const flashBtn = document.getElementById('flash-btn');
+const flashInterval = setInterval(() => {
+  flashSeconds--;
+  if(flashSeconds <= 0){
+    clearInterval(flashInterval);
+    flashTimerEl.textContent = 'Abgelaufen';
+    flashBtn.disabled = true;
+    flashBtn.textContent = 'Angebot abgelaufen';
+    return;
+  }
+  const m = Math.floor(flashSeconds / 60);
+  const s = flashSeconds % 60;
+  flashTimerEl.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}, 1000);
+
+flashBtn.addEventListener('click', () => {
+  document.getElementById('pay-court-name').textContent = 'Court 3';
+  document.getElementById('pay-when').textContent = 'Heute · 20:00–21:00';
+  document.getElementById('pay-price').textContent = '30,40€';
+  const share = (30.40/4).toFixed(2).replace('.', ',') + '€';
+  document.getElementById('pay-share').textContent = share;
+  document.getElementById('pay-share2').textContent = share;
+  document.getElementById('pay-share3').textContent = share;
+  document.getElementById('pay-share4').textContent = share;
+  saveBooking({ date_label:'Heute', time:'20:00', court:'Court 3', type:'ueberdacht', price:30.40, player_name:'Alex L. (Flash-Slot)' });
+  goto('view-pay');
+  flashBtn.disabled = true;
+  flashBtn.textContent = 'Gesichert ✓';
+  clearInterval(flashInterval);
+});
+
+/* PWA: Service Worker registrieren (funktioniert nur, wenn über http/https gehostet, nicht bei lokalem Doppelklick) */
+if('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./service-worker.js').catch(() => {});
+  });
+}
+</script>
+
+</body>
+</html>

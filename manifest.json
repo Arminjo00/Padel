@@ -1,0 +1,25 @@
+{
+  "name": "Padel Club Connect",
+  "short_name": "Padel Club",
+  "description": "Deine digitale Padel-Community: Matching, Ladder, Buchung & Split-Payment.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#060A12",
+  "theme_color": "#0E1626",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
