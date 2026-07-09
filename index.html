@@ -1419,6 +1419,48 @@ h2.screen-title{
   line-height:1.5;
 }
 .auth-info.show{ display:block; }
+
+/* My bookings */
+.my-booking-card{
+  background: var(--ink-2);
+  border:1px solid var(--line-soft);
+  border-radius:16px;
+  padding:14px;
+  margin-bottom:12px;
+}
+.my-booking-card .mb-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  margin-bottom:10px;
+}
+.my-booking-card .mb-court{
+  font-family:'Anton', sans-serif;
+  font-size:16px;
+  text-transform:uppercase;
+}
+.my-booking-card .mb-when{ font-size:11.5px; color:var(--muted); margin-top:3px; }
+.my-booking-card .mb-price{
+  font-family:'JetBrains Mono', monospace;
+  font-weight:700;
+  font-size:14px;
+  color:var(--ball);
+}
+.mb-cancel-btn{
+  width:100%;
+  padding:10px;
+  border-radius:12px;
+  border:1px solid rgba(255,107,91,0.35);
+  background: rgba(255,107,91,0.08);
+  color: var(--danger);
+  font-weight:700;
+  font-size:12.5px;
+  cursor:pointer;
+}
+.mb-cancel-btn:disabled{
+  opacity:0.5;
+  cursor:not-allowed;
+}
 </style>
 </head>
 <body>
@@ -1648,6 +1690,11 @@ h2.screen-title{
             <div class="em">👤</div>
             <strong>Profil</strong>
             <span>Level & Einstellungen</span>
+          </div>
+          <div class="action-card" data-goto="view-mybookings">
+            <div class="em">📋</div>
+            <strong>Meine Buchungen</strong>
+            <span>Ansehen & stornieren</span>
           </div>
           <div class="action-card" data-goto="view-feedback">
             <div class="em">💬</div>
@@ -2116,6 +2163,23 @@ h2.screen-title{
         </div>
       </div>
 
+      <!-- MY BOOKINGS -->
+      <div class="view" id="view-mybookings">
+        <div class="back-row" data-goto="view-home">← Zurück zum Dashboard</div>
+        <h2 class="screen-title">Meine Buchungen</h2>
+        <div id="my-bookings-list">
+          <div class="empty-state">Lade deine Buchungen...</div>
+        </div>
+
+        <div class="spacer"></div>
+        <div class="tabbar">
+          <div class="tab" data-goto="view-home"><div class="ic">🏠</div><div class="lb">Home</div></div>
+          <div class="tab" data-goto="view-match"><div class="ic">🎾</div><div class="lb">Match</div></div>
+          <div class="tab" data-goto="view-booking"><div class="ic">📅</div><div class="lb">Buchen</div></div>
+          <div class="tab" data-goto="view-ladder"><div class="ic">🏆</div><div class="lb">Ladder</div></div>
+        </div>
+      </div>
+
       <!-- ADMIN / BETREIBER DASHBOARD -->
       <div class="view" id="view-admin">
         <div class="back-row" data-goto="view-home">← Zurück zur Spieler-Ansicht</div>
@@ -2165,6 +2229,7 @@ function goto(id){
   document.getElementById('notif-panel').classList.remove('open');
   const screen = document.querySelector('.screen');
   screen.scrollTop = 0;
+  if(id === 'view-mybookings'){ loadMyBookings(); }
 }
 
 document.addEventListener('click', (e) => {
@@ -2227,14 +2292,14 @@ function showAuthInfo(msg){
   document.getElementById('auth-error').classList.remove('show');
 }
 
-async function loadProfileAndEnter(userId, email){
+async function loadProfileAndEnter(userId, email, metaName){
   let { data: profile } = await sb.from('profiles').select('*').eq('id', userId).maybeSingle();
   if(!profile){
-    const fallbackName = email.split('@')[0];
+    const fallbackName = metaName || email.split('@')[0];
     const { data: created } = await sb.from('profiles').insert([{ id: userId, full_name: fallbackName }]).select().maybeSingle();
     profile = created || { id: userId, full_name: fallbackName, level: null };
   }
-  currentUser = { id: userId, email: email, name: profile.full_name || email.split('@')[0] };
+  currentUser = { id: userId, email: email, name: profile.full_name || metaName || email.split('@')[0] };
   applyUserDisplay();
   if(profile.level !== null && profile.level !== undefined){
     setLevelEverywhere(profile.level, profile.level_name || levelNames[profile.level]);
@@ -2256,7 +2321,7 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
 
   if(authMode === 'signup'){
     if(!name){ showAuthError('Bitte gib deinen Namen ein.'); btn.disabled = false; btn.textContent = originalLabel; return; }
-    const { data, error } = await sb.auth.signUp({ email, password });
+    const { data, error } = await sb.auth.signUp({ email, password, options: { data: { full_name: name } } });
     if(error){ showAuthError(error.message); btn.disabled = false; btn.textContent = originalLabel; return; }
     if(!data.session){
       showAuthInfo('Konto erstellt! Bitte bestätige deine E-Mail-Adresse über den Link, den wir dir geschickt haben, und logge dich danach ein.');
@@ -2266,11 +2331,12 @@ document.getElementById('auth-submit-btn').addEventListener('click', async () =>
       return;
     }
     await sb.from('profiles').insert([{ id: data.user.id, full_name: name }]);
-    await loadProfileAndEnter(data.user.id, email);
+    await loadProfileAndEnter(data.user.id, email, name);
   } else {
     const { data, error } = await sb.auth.signInWithPassword({ email, password });
     if(error){ showAuthError(error.message === 'Invalid login credentials' ? 'E-Mail oder Passwort ist falsch.' : error.message); btn.disabled = false; btn.textContent = originalLabel; return; }
-    await loadProfileAndEnter(data.user.id, email);
+    const metaName = data.user.user_metadata && data.user.user_metadata.full_name;
+    await loadProfileAndEnter(data.user.id, email, metaName);
   }
   btn.disabled = false;
   btn.textContent = originalLabel;
@@ -2288,7 +2354,8 @@ document.getElementById('logout-btn').addEventListener('click', async () => {
 (async function initAuth(){
   const { data: { session } } = await sb.auth.getSession();
   if(session && session.user){
-    await loadProfileAndEnter(session.user.id, session.user.email);
+    const metaName = session.user.user_metadata && session.user.user_metadata.full_name;
+    await loadProfileAndEnter(session.user.id, session.user.email, metaName);
   } else {
     goto('view-auth');
   }
@@ -2361,6 +2428,13 @@ document.getElementById('about-save-btn').addEventListener('click', () => {
   confirm.classList.add('show');
   setTimeout(() => confirm.classList.remove('show'), 2500);
 });
+
+function resetPayButton(){
+  const btn = document.getElementById('pay-btn');
+  btn.textContent = 'Meinen Anteil bezahlen';
+  btn.disabled = false;
+  btn.style.opacity = '1';
+}
 
 document.getElementById('pay-btn').addEventListener('click', function(){
   this.textContent = 'Bezahlt ✓';
@@ -2487,6 +2561,24 @@ function renderAdminBookings(highlightLast){
   document.getElementById('admin-revenue').textContent = revenue.toFixed(2).replace('.00','') + '€';
 }
 
+/* Keep the booking-calendar slot state in sync with real bookings,
+   so every slot is its own independent thing — booking or cancelling
+   one never touches any other slot. */
+function setSlotTakenState(booking, takenState){
+  if(!booking || !booking.date_label || !booking.court || !booking.time) return;
+  const dateEntry = dateKeys.find(d => d.label === booking.date_label);
+  if(!dateEntry) return;
+  const slots = slotsByDate[dateEntry.key];
+  if(!slots) return;
+  const slot = slots.find(s => s.court === booking.court && s.time === booking.time);
+  if(slot){
+    slot.taken = takenState;
+    if(document.getElementById('view-booking').classList.contains('active')){
+      renderSlots();
+    }
+  }
+}
+
 /* Save a booking to the shared database. Every open instance of the app
    (players + Betreiber-Dashboard) will pick it up via the realtime subscription below. */
 async function saveBooking(booking){
@@ -2498,13 +2590,23 @@ async function loadBookings(){
   const { data, error } = await sb.from('bookings').select('*').order('created_at', { ascending: true });
   if(error){ console.error('Buchungen konnten nicht geladen werden:', error); return; }
   clubBookings = data || [];
+  clubBookings.forEach(b => setSlotTakenState(b, true));
   renderAdminBookings(false);
 }
 
 sb.channel('bookings-live')
   .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'bookings' }, (payload) => {
     clubBookings.push(payload.new);
+    setSlotTakenState(payload.new, true);
     renderAdminBookings(true);
+  })
+  .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'bookings' }, (payload) => {
+    clubBookings = clubBookings.filter(b => b.id !== payload.old.id);
+    setSlotTakenState(payload.old, false);
+    renderAdminBookings(false);
+    if(document.getElementById('view-mybookings').classList.contains('active')){
+      renderMyBookings();
+    }
   })
   .subscribe();
 
@@ -2514,6 +2616,64 @@ document.getElementById('admin-link-btn').addEventListener('click', () => {
   renderAdminBookings(false);
   goto('view-admin');
 });
+
+/* Meine Buchungen: view, cancel */
+let myBookingsCache = [];
+
+async function loadMyBookings(){
+  const list = document.getElementById('my-bookings-list');
+  if(!currentUser){
+    list.innerHTML = '<div class="empty-state">Bitte einloggen, um deine Buchungen zu sehen.</div>';
+    return;
+  }
+  list.innerHTML = '<div class="empty-state">Lade deine Buchungen...</div>';
+  const { data, error } = await sb.from('bookings').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false });
+  if(error){ list.innerHTML = '<div class="empty-state">Buchungen konnten nicht geladen werden.</div>'; return; }
+  myBookingsCache = data || [];
+  renderMyBookings();
+}
+
+function renderMyBookings(){
+  const list = document.getElementById('my-bookings-list');
+  if(myBookingsCache.length === 0){
+    list.innerHTML = '<div class="empty-state">Du hast aktuell keine Buchungen.</div>';
+    return;
+  }
+  list.innerHTML = '';
+  myBookingsCache.forEach(b => {
+    const typeLabel = b.type === 'offen' ? '☀️ Offen' : '🏠 Überdacht';
+    const el = document.createElement('div');
+    el.className = 'my-booking-card';
+    el.innerHTML = `
+      <div class="mb-top">
+        <div>
+          <div class="mb-court">${b.court}</div>
+          <div class="mb-when">${b.date_label} · ${b.time} · ${typeLabel}</div>
+        </div>
+        <div class="mb-price">${b.price}€</div>
+      </div>
+      <button class="mb-cancel-btn">Stornieren</button>
+    `;
+    el.querySelector('.mb-cancel-btn').addEventListener('click', async (e) => {
+      const btn = e.target;
+      btn.disabled = true;
+      btn.textContent = 'Wird storniert...';
+      const { error } = await sb.from('bookings').delete().eq('id', b.id);
+      if(error){
+        console.error('Stornieren fehlgeschlagen:', error);
+        btn.disabled = false;
+        btn.textContent = 'Stornieren';
+        return;
+      }
+      myBookingsCache = myBookingsCache.filter(x => x.id !== b.id);
+      clubBookings = clubBookings.filter(x => x.id !== b.id);
+      setSlotTakenState(b, false);
+      renderAdminBookings(false);
+      renderMyBookings();
+    });
+    list.appendChild(el);
+  });
+}
 
 function renderSlots(){
   const list = document.getElementById('slot-list');
@@ -2550,6 +2710,7 @@ function renderSlots(){
         document.getElementById('pay-share3').textContent = share;
         document.getElementById('pay-share4').textContent = share;
         saveBooking({ date_label: dateLabelObj.label, time: s.time, court: s.court, type: s.type, price: s.price, player_name: currentUser ? currentUser.name : 'Gast', user_id: currentUser ? currentUser.id : null });
+        resetPayButton();
         goto('view-pay');
         renderSlots();
       });
@@ -2814,6 +2975,7 @@ flashBtn.addEventListener('click', () => {
   document.getElementById('pay-share3').textContent = share;
   document.getElementById('pay-share4').textContent = share;
   saveBooking({ date_label:'Heute', time:'20:00', court:'Court 3', type:'ueberdacht', price:30.40, player_name: currentUser ? currentUser.name + ' (Flash-Slot)' : 'Gast (Flash-Slot)', user_id: currentUser ? currentUser.id : null });
+  resetPayButton();
   goto('view-pay');
   flashBtn.disabled = true;
   flashBtn.textContent = 'Gesichert ✓';
