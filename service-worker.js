@@ -1,4 +1,4 @@
-const CACHE_NAME = 'padel-club-connect-v1';
+const CACHE_NAME = 'padel-club-connect-v2';
 const FILES_TO_CACHE = [
   './index.html',
   './manifest.json',
@@ -22,8 +22,17 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
+/* Network-first: always try to fetch the newest version online first,
+   and only fall back to the cached copy if there's no internet connection.
+   This way, updates show up immediately instead of being stuck on an old cached version. */
 self.addEventListener('fetch', (event) => {
   event.respondWith(
-    caches.match(event.request).then((cached) => cached || fetch(event.request))
+    fetch(event.request)
+      .then((response) => {
+        const clone = response.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+        return response;
+      })
+      .catch(() => caches.match(event.request))
   );
 });
