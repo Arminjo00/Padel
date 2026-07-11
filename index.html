@@ -1461,6 +1461,146 @@ h2.screen-title{
   opacity:0.5;
   cursor:not-allowed;
 }
+
+/* Mode filter (Doppel/Einzel) */
+.mode-row{
+  display:flex;
+  gap:8px;
+  margin-bottom:10px;
+}
+.mode-pill{
+  font-size:12px;
+  font-weight:700;
+  padding:8px 14px;
+  border-radius:20px;
+  border:1px solid var(--line-soft);
+  color:var(--muted);
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.mode-pill.active{
+  border-color: var(--ball);
+  background: rgba(201,245,59,0.08);
+  color: var(--ball);
+}
+.mode-badge{
+  font-size:10px;
+  padding:2px 7px;
+  border-radius:8px;
+  font-weight:700;
+  background: var(--ink-3);
+  color:var(--muted);
+}
+
+/* Court picker */
+.court-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-bottom:20px;
+}
+.court-card{
+  background: var(--ink-2);
+  border:1px solid var(--line-soft);
+  border-radius:16px;
+  padding:14px;
+  cursor:pointer;
+  transition: border-color .15s ease;
+}
+.court-card.active{
+  border-color: var(--ball);
+  background: rgba(201,245,59,0.08);
+}
+.court-card .cc-name{
+  font-family:'Anton', sans-serif;
+  font-size:15px;
+  text-transform:uppercase;
+}
+.court-card .cc-meta{
+  display:flex;
+  gap:5px;
+  flex-wrap:wrap;
+  margin-top:9px;
+}
+.court-card .cc-bottom{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-top:10px;
+}
+.court-card .cc-price{
+  font-family:'JetBrains Mono', monospace;
+  font-weight:700;
+  font-size:12.5px;
+  color: var(--ball);
+}
+.court-card .cc-free{
+  font-family:'JetBrains Mono', monospace;
+  font-size:10.5px;
+  color: var(--muted);
+}
+
+/* Time picker */
+.time-grid{
+  display:grid;
+  grid-template-columns:repeat(3, 1fr);
+  gap:8px;
+  margin-bottom:10px;
+}
+.time-chip{
+  background: var(--ink-2);
+  border:1px solid var(--line-soft);
+  border-radius:12px;
+  padding:12px 4px;
+  text-align:center;
+  font-family:'JetBrains Mono', monospace;
+  font-weight:700;
+  font-size:13px;
+  cursor:pointer;
+  transition: border-color .15s ease, background .15s ease;
+}
+.time-chip:hover{
+  border-color: var(--ball-dim);
+  background: rgba(201,245,59,0.06);
+}
+
+/* Confirm overlay (booking confirmation) */
+.confirm-overlay{
+  position:absolute;
+  inset:0;
+  background: rgba(6,10,18,0.8);
+  backdrop-filter: blur(2px);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:24px;
+  z-index:200;
+}
+.confirm-overlay.show{ display:flex; }
+.confirm-card{
+  background: var(--ink-2);
+  border:1px solid var(--line-soft);
+  border-radius:20px;
+  padding:24px 20px;
+  text-align:center;
+  width:100%;
+  max-width:280px;
+}
+.confirm-card .cc-emoji{ font-size:30px; margin-bottom:10px; }
+.confirm-card h3{
+  font-family:'Anton', sans-serif;
+  font-size:16px;
+  text-transform:uppercase;
+  margin-bottom:10px;
+}
+.confirm-card p{
+  font-size:12.5px;
+  color:var(--muted);
+  line-height:1.6;
+  margin-bottom:18px;
+}
 </style>
 </head>
 <body>
@@ -1801,18 +1941,18 @@ h2.screen-title{
       <div class="view" id="view-booking">
         <h2 class="screen-title">Court buchen</h2>
 
-        <div class="flash-card" id="flash-card">
+        <div class="flash-card" id="flash-card" style="display:none;">
           <div class="fh-top">
             <div class="fh-title">⚡ Flash-Slot</div>
-            <div class="fh-timer" id="flash-timer">12:00</div>
+            <div class="fh-timer" id="flash-timer">15:00</div>
           </div>
           <div class="fh-body">
             <div class="fh-info">
-              <strong id="flash-court">Court 3 · Heute 20:00</strong>
-              <span>Kurzfristig frei geworden · Überdacht</span>
+              <strong id="flash-court">Court 1 · Heute 20:00</strong>
+              <span id="flash-subtitle">Kurzfristig frei geworden · Doppel · Überdacht</span>
             </div>
             <div class="fh-price">
-              <div class="old">38€</div>
+              <div class="old" id="flash-old-price">38€</div>
               <div class="new" id="flash-price">30,40€</div>
             </div>
           </div>
@@ -1822,13 +1962,27 @@ h2.screen-title{
         <div class="weather-banner" id="weather-banner"></div>
 
         <div class="date-row" id="date-row"></div>
+
+        <div class="section-label" style="margin-top:2px;">Spielart</div>
+        <div class="mode-row" id="mode-row">
+          <div class="mode-pill active" data-mode="alle">Alle</div>
+          <div class="mode-pill" data-mode="doppel">👥 Doppel (4 Spieler)</div>
+          <div class="mode-pill" data-mode="einzel">🎾 Einzel (2 Spieler)</div>
+        </div>
+
+        <div class="section-label">Lage</div>
         <div class="type-row">
           <div class="type-pill active" data-type="alle">Alle</div>
           <div class="type-pill" data-type="offen">☀️ Offen</div>
           <div class="type-pill" data-type="ueberdacht">🏠 Überdacht</div>
         </div>
 
-        <div id="slot-list"></div>
+        <div class="section-label">Platz auswählen</div>
+        <div class="court-grid" id="court-grid"></div>
+
+        <div class="section-label" id="times-label">Freie Zeiten</div>
+        <div class="time-grid" id="time-grid"></div>
+        <div id="time-empty-state"></div>
 
         <div class="spacer"></div>
         <div class="tabbar">
@@ -1836,6 +1990,16 @@ h2.screen-title{
           <div class="tab" data-goto="view-match"><div class="ic">🎾</div><div class="lb">Match</div></div>
           <div class="tab active" data-goto="view-booking"><div class="ic">📅</div><div class="lb">Buchen</div></div>
           <div class="tab" data-goto="view-ladder"><div class="ic">🏆</div><div class="lb">Ladder</div></div>
+        </div>
+
+        <div class="confirm-overlay" id="confirm-overlay">
+          <div class="confirm-card">
+            <div class="cc-emoji">🎾</div>
+            <h3>Platz reservieren?</h3>
+            <p id="confirm-text">Möchtest du diesen Platz wirklich reservieren?</p>
+            <button class="btn-primary" id="confirm-yes-btn" style="margin-bottom:10px;">Ja, reservieren</button>
+            <button class="btn-ghost" id="confirm-no-btn" style="margin-bottom:0;">Abbrechen</button>
+          </div>
         </div>
       </div>
 
@@ -1898,7 +2062,7 @@ h2.screen-title{
       <!-- PAYMENT -->
       <div class="view" id="view-pay">
         <div class="back-row" data-goto="view-booking">← Zurück zur Buchung</div>
-        <h2 class="screen-title">Split-Payment</h2>
+        <h2 class="screen-title" id="pay-screen-title">Split-Payment</h2>
 
         <div class="booking-card">
           <div class="top">
@@ -1916,19 +2080,19 @@ h2.screen-title{
               <div class="samt" id="pay-share">8,00€</div>
               <div class="status-dot paid" title="Bezahlt"></div>
             </div>
-            <div class="split-row">
+            <div class="split-row" id="pay-row-2">
               <div class="sav">MK</div>
               <div class="sname">Mia K.</div>
               <div class="samt" id="pay-share2">8,00€</div>
               <div class="status-dot paid" title="Bezahlt"></div>
             </div>
-            <div class="split-row">
+            <div class="split-row" id="pay-row-3">
               <div class="sav">JR</div>
               <div class="sname">Jonas R.</div>
               <div class="samt" id="pay-share3">8,00€</div>
               <div class="status-dot paid" title="Bezahlt"></div>
             </div>
-            <div class="split-row">
+            <div class="split-row" id="pay-row-4">
               <div class="sav">?</div>
               <div class="sname">Noch offen</div>
               <div class="samt" id="pay-share4">8,00€</div>
@@ -1936,12 +2100,14 @@ h2.screen-title{
             </div>
           </div>
 
-          <div class="progress-track"><div class="progress-fill" style="width:75%"></div></div>
-          <div class="progress-label">3 von 4 bezahlt · Court wird bei Vollzahlung fest reserviert</div>
+          <div id="pay-progress-block">
+            <div class="progress-track"><div class="progress-fill" id="pay-progress-fill" style="width:75%"></div></div>
+            <div class="progress-label" id="pay-progress-label">3 von 4 bezahlt · Court wird bei Vollzahlung fest reserviert</div>
+          </div>
         </div>
 
         <button class="btn-primary" id="pay-btn">Meinen Anteil bezahlen</button>
-        <button class="btn-ghost">Zahlungserinnerung senden</button>
+        <button class="btn-ghost" id="pay-remind-btn">Zahlungserinnerung senden</button>
 
         <div class="spacer"></div>
         <div class="tabbar">
@@ -2177,6 +2343,17 @@ h2.screen-title{
           <div class="tab" data-goto="view-match"><div class="ic">🎾</div><div class="lb">Match</div></div>
           <div class="tab" data-goto="view-booking"><div class="ic">📅</div><div class="lb">Buchen</div></div>
           <div class="tab" data-goto="view-ladder"><div class="ic">🏆</div><div class="lb">Ladder</div></div>
+        </div>
+
+        <div class="confirm-overlay" id="cancel-choice-overlay">
+          <div class="confirm-card">
+            <div class="cc-emoji" id="cancel-choice-emoji">🤔</div>
+            <h3 id="cancel-choice-title">Kannst du nicht mehr spielen?</h3>
+            <p id="cancel-choice-text">Soll ich zuerst versuchen, einen Ersatzspieler für dich zu finden?</p>
+            <button class="btn-primary" id="cancel-find-player-btn" style="margin-bottom:10px;">🔍 Ersatzspieler suchen</button>
+            <button class="btn-ghost" id="cancel-full-btn" style="color:var(--danger); margin-bottom:10px;">Platz komplett stornieren</button>
+            <button class="btn-ghost" id="cancel-choice-back-btn" style="margin-bottom:0;">Zurück</button>
+          </div>
         </div>
       </div>
 
@@ -2477,16 +2654,32 @@ for(let i=0;i<6;i++){
   });
 }
 
+/* Die 4 echten Plätze der Halle: fest definierte Identität statt Zufallszuweisung */
+const COURTS = [
+  { court:'Court 1', mode:'doppel', type:'ueberdacht', price:38 },
+  { court:'Court 2', mode:'doppel', type:'offen',      price:32 },
+  { court:'Court 3', mode:'doppel', type:'offen',      price:32 },
+  { court:'Court 4', mode:'einzel', type:'offen',      price:22 },
+];
+const COURT_TIMES = ['09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00','21:00'];
+
 const slotsByDate = {};
-dateKeys.forEach((d, idx) => {
-  slotsByDate[d.key] = [
-    { time:'16:00', court:'Court 1', type:'offen', price:32, taken: idx===0 },
-    { time:'17:00', court:'Court 3', type:'ueberdacht', price:38, taken: false },
-    { time:'18:00', court:'Court 2', type:'offen', price:32, taken: idx===0 },
-    { time:'19:00', court:'Court 4', type:'ueberdacht', price:38, taken: idx % 2 === 0 },
-    { time:'20:00', court:'Court 1', type:'offen', price:32, taken: false },
-    { time:'21:00', court:'Court 3', type:'ueberdacht', price:38, taken: idx===2 },
-  ];
+dateKeys.forEach((d, dIdx) => {
+  const daySlots = [];
+  COURTS.forEach((c, cIdx) => {
+    COURT_TIMES.forEach((t, tIdx) => {
+      const takenSeed = (dIdx * 7 + cIdx * 3 + tIdx) % 5;
+      daySlots.push({
+        time: t,
+        court: c.court,
+        mode: c.mode,
+        type: c.type,
+        price: c.price,
+        taken: takenSeed === 0
+      });
+    });
+  });
+  slotsByDate[d.key] = daySlots;
 });
 
 const weatherByDate = [
@@ -2500,6 +2693,7 @@ const weatherByDate = [
 
 let selectedDate = dateKeys[0].key;
 let selectedType = 'alle';
+let selectedMode = 'alle';
 
 function updateWeatherBanner(){
   const idx = dateKeys.findIndex(d => d.key === selectedDate);
@@ -2633,6 +2827,112 @@ async function loadMyBookings(){
   renderMyBookings();
 }
 
+/* How many hours until a booking's slot starts (real wall-clock time).
+   Only meaningful for "Heute" bookings — everything else is treated as far away. */
+function hoursUntilBooking(b){
+  const todayLabel = dateKeys[0].label; // "Heute"
+  if(b.date_label !== todayLabel) return Infinity;
+  const [h, m] = b.time.split(':').map(Number);
+  const target = new Date();
+  target.setHours(h, m, 0, 0);
+  const diffMs = target.getTime() - Date.now();
+  return diffMs / (1000 * 60 * 60);
+}
+
+/* Dynamic Flash-Slot: only appears when a full court cancellation happens
+   within 2 hours of the reserved time. */
+let activeFlashSlot = null;
+
+function triggerFlashSlot(cancelledBooking){
+  const discountPrice = (cancelledBooking.price * 0.8);
+  activeFlashSlot = {
+    date_label: cancelledBooking.date_label,
+    time: cancelledBooking.time,
+    court: cancelledBooking.court,
+    type: cancelledBooking.type,
+    mode: cancelledBooking.mode || 'doppel',
+    fullPrice: cancelledBooking.price,
+    price: Math.round(discountPrice * 100) / 100
+  };
+  const typeLabel = activeFlashSlot.type === 'offen' ? 'Offen' : 'Überdacht';
+  const modeLabel = activeFlashSlot.mode === 'einzel' ? 'Einzel' : 'Doppel';
+  document.getElementById('flash-court').textContent = `${activeFlashSlot.court} · ${activeFlashSlot.date_label} ${activeFlashSlot.time}`;
+  document.getElementById('flash-subtitle').textContent = `Kurzfristig storniert · ${modeLabel} · ${typeLabel}`;
+  document.getElementById('flash-old-price').textContent = activeFlashSlot.fullPrice + '€';
+  document.getElementById('flash-price').textContent = activeFlashSlot.price.toFixed(2).replace('.', ',') + '€';
+  document.getElementById('flash-card').style.display = 'block';
+  resetFlashCountdown();
+}
+
+function hideFlashSlot(){
+  activeFlashSlot = null;
+  document.getElementById('flash-card').style.display = 'none';
+  if(flashInterval) clearInterval(flashInterval);
+}
+
+/* ---------- Meine Buchungen: cancel flow ---------- */
+let pendingCancelBooking = null;
+
+function openCancelChoice(b){
+  pendingCancelBooking = b;
+  const isDoppel = (b.mode || 'doppel') === 'doppel';
+  document.getElementById('cancel-choice-emoji').textContent = isDoppel ? '🤔' : '⚠️';
+  document.getElementById('cancel-choice-title').textContent = isDoppel ? 'Kannst du nicht mehr spielen?' : 'Wirklich stornieren?';
+  document.getElementById('cancel-choice-text').textContent = isDoppel
+    ? `Bevor du ${b.court} am ${b.date_label} um ${b.time} komplett stornierst: Soll ich zuerst versuchen, einen Ersatzspieler für dich zu finden? Dann bleibt der Platz für die Gruppe reserviert.`
+    : `Möchtest du deine Buchung für ${b.court} am ${b.date_label} um ${b.time} wirklich stornieren?`;
+  document.getElementById('cancel-find-player-btn').style.display = isDoppel ? 'block' : 'none';
+  document.getElementById('cancel-full-btn').textContent = isDoppel ? 'Platz komplett stornieren' : 'Ja, stornieren';
+  document.getElementById('cancel-choice-overlay').classList.add('show');
+}
+
+document.getElementById('cancel-choice-back-btn').addEventListener('click', () => {
+  document.getElementById('cancel-choice-overlay').classList.remove('show');
+  pendingCancelBooking = null;
+});
+
+document.getElementById('cancel-find-player-btn').addEventListener('click', () => {
+  document.getElementById('cancel-choice-overlay').classList.remove('show');
+  pendingCancelBooking = null;
+  showAuthInfoToast('🔍 Anfrage gesendet – wir suchen einen Ersatzspieler aus dem Club für euch. Der Platz bleibt bis dahin reserviert.');
+});
+
+function showAuthInfoToast(msg){
+  const confirm = document.getElementById('fb-confirm');
+  // Reuse the small green confirm banner style via a lightweight inline toast on my-bookings screen instead.
+  const list = document.getElementById('my-bookings-list');
+  const toast = document.createElement('div');
+  toast.className = 'save-confirm show';
+  toast.style.marginBottom = '12px';
+  toast.textContent = msg;
+  list.parentNode.insertBefore(toast, list);
+  setTimeout(() => toast.remove(), 4000);
+}
+
+document.getElementById('cancel-full-btn').addEventListener('click', async () => {
+  const b = pendingCancelBooking;
+  if(!b) return;
+  document.getElementById('cancel-choice-overlay').classList.remove('show');
+  const { error } = await sb.from('bookings').delete().eq('id', b.id);
+  if(error){
+    console.error('Stornieren fehlgeschlagen:', error);
+    pendingCancelBooking = null;
+    return;
+  }
+  myBookingsCache = myBookingsCache.filter(x => x.id !== b.id);
+  clubBookings = clubBookings.filter(x => x.id !== b.id);
+  setSlotTakenState(b, false);
+  renderAdminBookings(false);
+  renderMyBookings();
+
+  const hoursLeft = hoursUntilBooking(b);
+  if(hoursLeft >= 0 && hoursLeft <= 2){
+    triggerFlashSlot(b);
+    showAuthInfoToast('⚡ Da dein Termin bald beginnt, haben wir daraus einen Flash-Slot für andere Spieler gemacht.');
+  }
+  pendingCancelBooking = null;
+});
+
 function renderMyBookings(){
   const list = document.getElementById('my-bookings-list');
   if(myBookingsCache.length === 0){
@@ -2654,68 +2954,145 @@ function renderMyBookings(){
       </div>
       <button class="mb-cancel-btn">Stornieren</button>
     `;
-    el.querySelector('.mb-cancel-btn').addEventListener('click', async (e) => {
-      const btn = e.target;
-      btn.disabled = true;
-      btn.textContent = 'Wird storniert...';
-      const { error } = await sb.from('bookings').delete().eq('id', b.id);
-      if(error){
-        console.error('Stornieren fehlgeschlagen:', error);
-        btn.disabled = false;
-        btn.textContent = 'Stornieren';
-        return;
-      }
-      myBookingsCache = myBookingsCache.filter(x => x.id !== b.id);
-      clubBookings = clubBookings.filter(x => x.id !== b.id);
-      setSlotTakenState(b, false);
-      renderAdminBookings(false);
-      renderMyBookings();
+    el.querySelector('.mb-cancel-btn').addEventListener('click', () => {
+      openCancelChoice(b);
     });
     list.appendChild(el);
   });
 }
 
+/* Confirm dialog: asks politely before a slot is actually reserved */
+let pendingConfirmAction = null;
+
+function openBookingConfirm(s, dateLabelObj){
+  const modeLabel = s.mode === 'einzel' ? 'Einzel (2 Spieler)' : 'Doppel (4 Spieler)';
+  document.getElementById('confirm-text').textContent =
+    `Möchtest du ${s.court} am ${dateLabelObj.label} um ${s.time} Uhr reservieren? ${modeLabel} · ${s.price}€.`;
+  document.getElementById('confirm-overlay').classList.add('show');
+  pendingConfirmAction = () => {
+    s.taken = true;
+    const isEinzel = s.mode === 'einzel';
+    document.getElementById('pay-screen-title').textContent = isEinzel ? 'Zahlung' : 'Split-Payment';
+    document.getElementById('pay-court-name').textContent = s.court;
+    document.getElementById('pay-when').textContent = `${dateLabelObj.label} · ${s.time}–${(parseInt(s.time)+1)}:00`;
+    document.getElementById('pay-price').textContent = s.price + '€';
+
+    ['pay-row-2','pay-row-3','pay-row-4'].forEach(id => {
+      document.getElementById(id).style.display = isEinzel ? 'none' : 'flex';
+    });
+    document.getElementById('pay-progress-block').style.display = isEinzel ? 'none' : 'block';
+
+    if(isEinzel){
+      document.getElementById('pay-share').textContent = s.price + '€';
+    } else {
+      const share = (s.price/4).toFixed(2).replace('.', ',') + '€';
+      document.getElementById('pay-share').textContent = share;
+      document.getElementById('pay-share2').textContent = share;
+      document.getElementById('pay-share3').textContent = share;
+      document.getElementById('pay-share4').textContent = share;
+    }
+
+    saveBooking({ date_label: dateLabelObj.label, time: s.time, court: s.court, type: s.type, mode: s.mode, price: s.price, player_name: currentUser ? currentUser.name : 'Gast', user_id: currentUser ? currentUser.id : null });
+    resetPayButton();
+    goto('view-pay');
+    renderSlots();
+  };
+}
+
+document.getElementById('confirm-no-btn').addEventListener('click', () => {
+  document.getElementById('confirm-overlay').classList.remove('show');
+  pendingConfirmAction = null;
+});
+document.getElementById('confirm-yes-btn').addEventListener('click', () => {
+  document.getElementById('confirm-overlay').classList.remove('show');
+  if(pendingConfirmAction) pendingConfirmAction();
+  pendingConfirmAction = null;
+});
+
 function renderSlots(){
-  const list = document.getElementById('slot-list');
-  list.innerHTML = '';
-  const slots = slotsByDate[selectedDate].filter(s => selectedType === 'alle' || s.type === selectedType);
-  if(slots.length === 0){
-    list.innerHTML = '<div class="empty-state">Keine Plätze für diesen Filter verfügbar.</div>';
+  renderCourts();
+  renderTimesForSelectedCourt();
+}
+
+let selectedCourtName = null;
+
+function eligibleCourts(){
+  return COURTS.filter(c =>
+    (selectedType === 'alle' || c.type === selectedType) &&
+    (selectedMode === 'alle' || c.mode === selectedMode)
+  );
+}
+
+function renderCourts(){
+  const grid = document.getElementById('court-grid');
+  const eligible = eligibleCourts();
+
+  if(!selectedCourtName || !eligible.find(c => c.court === selectedCourtName)){
+    selectedCourtName = eligible.length > 0 ? eligible[0].court : null;
+  }
+
+  if(eligible.length === 0){
+    grid.innerHTML = '<div class="empty-state">Kein Platz passt zu dieser Filter-Kombination.</div>';
     return;
   }
-  slots.forEach(s => {
+
+  grid.innerHTML = '';
+  eligible.forEach(c => {
+    const freeCount = slotsByDate[selectedDate].filter(s => s.court === c.court && !s.taken).length;
+    const typeLabel = c.type === 'offen' ? '☀️ Offen' : '🏠 Überdacht';
+    const typeClass = c.type === 'offen' ? 'offen' : 'ueberdacht';
+    const modeLabel = c.mode === 'einzel' ? '🎾 Einzel (2)' : '👥 Doppel (4)';
     const el = document.createElement('div');
-    el.className = 'slot-card' + (s.taken ? ' taken' : '');
-    const typeLabel = s.type === 'offen' ? '☀️ Offen' : '🏠 Überdacht';
-    const typeClass = s.type === 'offen' ? 'offen' : 'ueberdacht';
+    el.className = 'court-card' + (c.court === selectedCourtName ? ' active' : '');
     el.innerHTML = `
-      <div class="slot-time">${s.time}</div>
-      <div class="slot-info">
-        <strong>${s.court}</strong>
-        <div class="meta"><span class="court-type-badge ${typeClass}">${typeLabel}</span></div>
+      <div class="cc-name">${c.court}</div>
+      <div class="cc-meta">
+        <span class="court-type-badge ${typeClass}">${typeLabel}</span>
+        <span class="mode-badge">${modeLabel}</span>
       </div>
-      <div class="slot-price">${s.price}€</div>
-      <button class="slot-btn" ${s.taken ? 'disabled' : ''}>${s.taken ? 'Belegt' : 'Reservieren'}</button>
+      <div class="cc-bottom">
+        <span class="cc-price">${c.price}€</span>
+        <span class="cc-free">${freeCount} frei</span>
+      </div>
     `;
-    if(!s.taken){
-      el.querySelector('.slot-btn').addEventListener('click', () => {
-        s.taken = true;
-        const dateLabelObj = dateKeys.find(d => d.key === selectedDate);
-        const share = (s.price/4).toFixed(2).replace('.', ',') + '€';
-        document.getElementById('pay-court-name').textContent = s.court;
-        document.getElementById('pay-when').textContent = `${dateLabelObj.label} · ${s.time}–${(parseInt(s.time)+1)}:00`;
-        document.getElementById('pay-price').textContent = s.price + '€';
-        document.getElementById('pay-share').textContent = share;
-        document.getElementById('pay-share2').textContent = share;
-        document.getElementById('pay-share3').textContent = share;
-        document.getElementById('pay-share4').textContent = share;
-        saveBooking({ date_label: dateLabelObj.label, time: s.time, court: s.court, type: s.type, price: s.price, player_name: currentUser ? currentUser.name : 'Gast', user_id: currentUser ? currentUser.id : null });
-        resetPayButton();
-        goto('view-pay');
-        renderSlots();
-      });
-    }
-    list.appendChild(el);
+    el.addEventListener('click', () => {
+      selectedCourtName = c.court;
+      renderCourts();
+      renderTimesForSelectedCourt();
+    });
+    grid.appendChild(el);
+  });
+}
+
+function renderTimesForSelectedCourt(){
+  const timeGrid = document.getElementById('time-grid');
+  const emptyState = document.getElementById('time-empty-state');
+  const label = document.getElementById('times-label');
+  timeGrid.innerHTML = '';
+  emptyState.innerHTML = '';
+
+  if(!selectedCourtName){
+    label.innerHTML = 'Freie Zeiten';
+    return;
+  }
+
+  label.innerHTML = `Freie Zeiten <span style="color:var(--ball)">${selectedCourtName}</span>`;
+  const freeSlots = slotsByDate[selectedDate].filter(s => s.court === selectedCourtName && !s.taken);
+
+  if(freeSlots.length === 0){
+    emptyState.innerHTML = '<div class="empty-state">An diesem Tag ist dieser Platz bereits ausgebucht. Wähl einen anderen Tag oder Platz.</div>';
+    return;
+  }
+
+  freeSlots.forEach(s => {
+    const el = document.createElement('div');
+    el.className = 'time-chip';
+    el.textContent = s.time;
+    el.addEventListener('click', () => {
+      const dateLabelObj = dateKeys.find(d => d.key === selectedDate);
+      openBookingConfirm(s, dateLabelObj);
+    });
+    timeGrid.appendChild(el);
   });
 }
 
@@ -2943,43 +3320,69 @@ document.querySelectorAll('.type-pill').forEach(p => {
   });
 });
 
+document.querySelectorAll('.mode-pill').forEach(p => {
+  p.addEventListener('click', () => {
+    document.querySelectorAll('.mode-pill').forEach(x => x.classList.remove('active'));
+    p.classList.add('active');
+    selectedMode = p.getAttribute('data-mode');
+    renderSlots();
+  });
+});
+
 renderDateRow();
 updateWeatherBanner();
 renderSlots();
 
 /* Flash-Slot countdown */
-let flashSeconds = 12 * 60;
+let flashSeconds = 15 * 60;
+let flashInterval = null;
 const flashTimerEl = document.getElementById('flash-timer');
 const flashBtn = document.getElementById('flash-btn');
-const flashInterval = setInterval(() => {
-  flashSeconds--;
-  if(flashSeconds <= 0){
-    clearInterval(flashInterval);
-    flashTimerEl.textContent = 'Abgelaufen';
-    flashBtn.disabled = true;
-    flashBtn.textContent = 'Angebot abgelaufen';
-    return;
-  }
-  const m = Math.floor(flashSeconds / 60);
-  const s = flashSeconds % 60;
-  flashTimerEl.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-}, 1000);
+
+function resetFlashCountdown(){
+  if(flashInterval) clearInterval(flashInterval);
+  flashSeconds = 15 * 60;
+  flashBtn.disabled = false;
+  flashBtn.textContent = 'Jetzt sichern (-20%)';
+  flashInterval = setInterval(() => {
+    flashSeconds--;
+    if(flashSeconds <= 0){
+      clearInterval(flashInterval);
+      flashTimerEl.textContent = 'Abgelaufen';
+      flashBtn.disabled = true;
+      flashBtn.textContent = 'Angebot abgelaufen';
+      setTimeout(() => hideFlashSlot(), 1500);
+      return;
+    }
+    const m = Math.floor(flashSeconds / 60);
+    const s = flashSeconds % 60;
+    flashTimerEl.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  }, 1000);
+}
 
 flashBtn.addEventListener('click', () => {
-  document.getElementById('pay-court-name').textContent = 'Court 3';
-  document.getElementById('pay-when').textContent = 'Heute · 20:00–21:00';
-  document.getElementById('pay-price').textContent = '30,40€';
-  const share = (30.40/4).toFixed(2).replace('.', ',') + '€';
-  document.getElementById('pay-share').textContent = share;
-  document.getElementById('pay-share2').textContent = share;
-  document.getElementById('pay-share3').textContent = share;
-  document.getElementById('pay-share4').textContent = share;
-  saveBooking({ date_label:'Heute', time:'20:00', court:'Court 3', type:'ueberdacht', price:30.40, player_name: currentUser ? currentUser.name + ' (Flash-Slot)' : 'Gast (Flash-Slot)', user_id: currentUser ? currentUser.id : null });
+  if(!activeFlashSlot) return;
+  const fs = activeFlashSlot;
+  const isEinzel = fs.mode === 'einzel';
+  document.getElementById('pay-screen-title').textContent = isEinzel ? 'Zahlung' : 'Split-Payment';
+  document.getElementById('pay-court-name').textContent = fs.court;
+  document.getElementById('pay-when').textContent = `${fs.date_label} · ${fs.time}–${(parseInt(fs.time)+1)}:00`;
+  document.getElementById('pay-price').textContent = fs.price.toFixed(2).replace('.', ',') + '€';
+  ['pay-row-2','pay-row-3','pay-row-4'].forEach(id => { document.getElementById(id).style.display = isEinzel ? 'none' : 'flex'; });
+  document.getElementById('pay-progress-block').style.display = isEinzel ? 'none' : 'block';
+  if(isEinzel){
+    document.getElementById('pay-share').textContent = fs.price.toFixed(2).replace('.', ',') + '€';
+  } else {
+    const share = (fs.price/4).toFixed(2).replace('.', ',') + '€';
+    document.getElementById('pay-share').textContent = share;
+    document.getElementById('pay-share2').textContent = share;
+    document.getElementById('pay-share3').textContent = share;
+    document.getElementById('pay-share4').textContent = share;
+  }
+  saveBooking({ date_label: fs.date_label, time: fs.time, court: fs.court, type: fs.type, mode: fs.mode, price: fs.price, player_name: currentUser ? currentUser.name + ' (Flash-Slot)' : 'Gast (Flash-Slot)', user_id: currentUser ? currentUser.id : null });
   resetPayButton();
   goto('view-pay');
-  flashBtn.disabled = true;
-  flashBtn.textContent = 'Gesichert ✓';
-  clearInterval(flashInterval);
+  hideFlashSlot();
 });
 
 /* PWA: Service Worker registrieren (funktioniert nur, wenn über http/https gehostet, nicht bei lokalem Doppelklick) */
